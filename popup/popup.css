@@ -335,6 +335,12 @@ body {
   border: 1px solid rgba(128, 216, 160, 0.25);
 }
 
+.conv-platform--gemini {
+  background: rgba(130, 160, 240, 0.15);
+  color: #82a0f0;
+  border: 1px solid rgba(130, 160, 240, 0.25);
+}
+
 .conv-info {
   flex: 1;
   min-width: 0;

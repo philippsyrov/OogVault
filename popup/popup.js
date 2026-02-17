@@ -178,8 +178,9 @@
   }
 
   function renderConvCard(conv, matchedContent) {
-    const platformLabel = conv.platform === 'claude' ? 'C' : 'G';
-    const platformClass = conv.platform === 'claude' ? 'claude' : 'chatgpt';
+    const platformMap = { claude: 'C', chatgpt: 'G', gemini: 'Ge' };
+    const platformLabel = platformMap[conv.platform] || conv.platform?.charAt(0).toUpperCase() || '?';
+    const platformClass = conv.platform || 'chatgpt';
     const timeStr = formatTime(conv.updated_at || conv.created_at);
 
     return `
