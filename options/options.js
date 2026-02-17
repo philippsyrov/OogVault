@@ -6,8 +6,6 @@
   'use strict';
 
   const optAutocomplete = document.getElementById('opt-autocomplete');
-  const optMinLength = document.getElementById('opt-min-length');
-  const optMinLengthVal = document.getElementById('opt-min-length-val');
   const statConversations = document.getElementById('stat-conversations');
   const statMessages = document.getElementById('stat-messages');
   const btnExportAll = document.getElementById('btn-export-all');
@@ -25,8 +23,6 @@
     const settings = resp?.settings || {};
 
     optAutocomplete.checked = settings.autocompleteEnabled !== false;
-    optMinLength.value = settings.autocompleteMinLength || 20;
-    optMinLengthVal.textContent = optMinLength.value;
   }
 
   async function loadStats() {
@@ -39,12 +35,6 @@
 
   function bindEvents() {
     optAutocomplete.addEventListener('change', saveSettings);
-
-    optMinLength.addEventListener('input', () => {
-      optMinLengthVal.textContent = optMinLength.value;
-    });
-    optMinLength.addEventListener('change', saveSettings);
-
     btnExportAll.addEventListener('click', exportAllData);
     btnClearAll.addEventListener('click', clearAllData);
   }
@@ -52,7 +42,6 @@
   async function saveSettings() {
     const settings = {
       autocompleteEnabled: optAutocomplete.checked,
-      autocompleteMinLength: parseInt(optMinLength.value, 10),
     };
 
     await sendMessage({ type: 'SAVE_SETTINGS', settings });

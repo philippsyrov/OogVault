@@ -6,6 +6,7 @@
 (function () {
   'use strict';
 
+
   const PLATFORM = 'claude';
   const URL_CHECK_INTERVAL_MS = 1500;
 
@@ -22,11 +23,16 @@
       // Inject save button IMMEDIATELY — don't wait for anything
       injectSaveButton();
 
-      waitForChatContainer(() => {
-        console.log('[OogVault] Chat container found, setting up observers...');
-        observeMessages();
+      // Only look for chat container on actual conversation pages
+      if (window.location.pathname.includes('/chat/')) {
+        waitForChatContainer(() => {
+          console.log('[OogVault] Chat container found, setting up observers...');
+          observeMessages();
+          initAutocompleteForPlatform();
+        });
+      } else {
         initAutocompleteForPlatform();
-      });
+      }
 
       setInterval(checkUrlChange, URL_CHECK_INTERVAL_MS);
     } catch (err) {
@@ -43,10 +49,14 @@
       cleanup();
       injectSaveButton();
       setTimeout(() => {
-        waitForChatContainer(() => {
-          observeMessages();
+        if (window.location.pathname.includes('/chat/')) {
+          waitForChatContainer(() => {
+            observeMessages();
+            initAutocompleteForPlatform();
+          });
+        } else {
           initAutocompleteForPlatform();
-        });
+        }
       }, 1000);
     }
   }
@@ -73,7 +83,7 @@
     if (attempts < 30) {
       setTimeout(() => waitForChatContainer(callback, attempts + 1), 500);
     } else {
-      console.warn('[OogVault] Gave up waiting for chat container after 30 attempts');
+      console.log('[OogVault] Gave up waiting for chat container after 30 attempts');
     }
   }
 
@@ -113,7 +123,7 @@
         return result;
       }
     } catch (e) {
-      console.warn('[OogVault] Strategy 1 error:', e.message);
+      console.log('[OogVault] Strategy error:', e.message);
     }
 
     // Strategy 2: Look for elements with data-testid containing message-related words
@@ -124,7 +134,7 @@
         return result;
       }
     } catch (e) {
-      console.warn('[OogVault] Strategy 2 error:', e.message);
+      console.log('[OogVault] Strategy error:', e.message);
     }
 
     // Strategy 3: Find message blocks by looking for distinct visual groups
@@ -135,7 +145,7 @@
         return result;
       }
     } catch (e) {
-      console.warn('[OogVault] Strategy 3 error:', e.message);
+      console.log('[OogVault] Strategy error:', e.message);
     }
 
     // Strategy 4: NUCLEAR — just grab all visible text and save it
@@ -146,7 +156,7 @@
         return [{ role: 'user', content: text }];
       }
     } catch (e) {
-      console.warn('[OogVault] Strategy 4 error:', e.message);
+      console.log('[OogVault] Strategy error:', e.message);
     }
 
     // Log debug info if everything failed
@@ -565,33 +575,33 @@
     const btn = document.createElement('button');
     btn.id = 'oogvault-save-btn';
     btn.className = 'oogvault-save-btn';
-    btn.innerHTML = '🐢 Save to OogVault';
+    btn.innerHTML = `Save to OogVault`;
     btn.title = 'Save this conversation to OogVault';
 
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      btn.innerHTML = '🐢 Saving...';
+      btn.innerHTML = `Saving...`;
 
       try {
         const result = await saveCurrentConversation();
 
         if (result?.success) {
-          btn.innerHTML = `🐢 Saved ${result.messageCount} msgs!`;
+          btn.innerHTML = `Saved ${result.messageCount} msgs!`;
           btn.classList.add('oogvault-save-btn--saved');
         } else {
-          btn.innerHTML = `🐢 ${result?.reason || 'Save failed'}`;
+          btn.innerHTML = `${result?.reason || 'Save failed'}`;
           btn.classList.add('oogvault-save-btn--error');
           console.error('[OogVault] Save failed. Reason:', result?.reason);
         }
       } catch (err) {
-        btn.innerHTML = '🐢 Error — check console';
+        btn.innerHTML = `Error — check console`;
         btn.classList.add('oogvault-save-btn--error');
         console.error('[OogVault] Save threw an error:', err);
       }
 
       setTimeout(() => {
         btn.disabled = false;
-        btn.innerHTML = '🐢 Save to OogVault';
+        btn.innerHTML = `Save to OogVault`;
         btn.classList.remove('oogvault-save-btn--saved', 'oogvault-save-btn--error');
       }, 3000);
     });

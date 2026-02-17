@@ -6,6 +6,7 @@
 (function () {
   'use strict';
 
+
   const PLATFORM = 'chatgpt';
   const URL_CHECK_INTERVAL_MS = 1500;
 
@@ -244,33 +245,33 @@
     const btn = document.createElement('button');
     btn.id = 'oogvault-save-btn';
     btn.className = 'oogvault-save-btn';
-    btn.innerHTML = '🐢 Save to OogVault';
+    btn.innerHTML = `Save to OogVault`;
     btn.title = 'Save this conversation to OogVault';
 
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      btn.innerHTML = '🐢 Saving...';
+      btn.innerHTML = `Saving...`;
 
       try {
         const result = await saveCurrentConversation();
 
         if (result?.success) {
-          btn.innerHTML = `🐢 Saved ${result.messageCount} msgs!`;
+          btn.innerHTML = `Saved ${result.messageCount} msgs!`;
           btn.classList.add('oogvault-save-btn--saved');
         } else {
-          btn.innerHTML = `🐢 ${result?.reason || 'Save failed'}`;
+          btn.innerHTML = `${result?.reason || 'Save failed'}`;
           btn.classList.add('oogvault-save-btn--error');
           console.error('[OogVault] Save failed. Reason:', result?.reason);
         }
       } catch (err) {
-        btn.innerHTML = '🐢 Error — check console';
+        btn.innerHTML = `Error — check console`;
         btn.classList.add('oogvault-save-btn--error');
         console.error('[OogVault] Save threw an error:', err);
       }
 
       setTimeout(() => {
         btn.disabled = false;
-        btn.innerHTML = '🐢 Save to OogVault';
+        btn.innerHTML = `Save to OogVault`;
         btn.classList.remove('oogvault-save-btn--saved', 'oogvault-save-btn--error');
       }, 3000);
     });

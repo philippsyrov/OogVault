@@ -6,6 +6,7 @@
 (function () {
   'use strict';
 
+
   const DEBOUNCE_MS = 300;
   const MIN_QUERY_LENGTH = 10;
 
@@ -40,7 +41,7 @@
     dropdown.setAttribute('role', 'listbox');
     dropdown.innerHTML = `
       <div class="oogvault-ac-header">
-        <span class="oogvault-ac-icon">🐢</span>
+        <span class="oogvault-ac-icon"></span>
         <span>You asked this before:</span>
       </div>
       <div class="oogvault-ac-results"></div>
@@ -183,7 +184,7 @@
     preview.innerHTML = `
       <div class="oogvault-preview-header">
         <span class="oogvault-preview-title">
-          <span class="oogvault-preview-icon">🐢</span>
+          <span class="oogvault-preview-icon"></span>
           ${escapeHtml(conversation.title)}
         </span>
         <button class="oogvault-preview-close" title="Close">&times;</button>
