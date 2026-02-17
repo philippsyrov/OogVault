@@ -302,13 +302,14 @@
 }
 
 .oogvault-preview-msg {
-  margin-bottom: 10px;
-  padding: 14px 16px;
+  margin-bottom: 8px;
+  padding: 8px 14px;
   border-radius: 18px;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.4;
   color: rgba(255, 255, 255, 0.90);
   word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .oogvault-preview-msg--user {
@@ -325,7 +326,7 @@
 
 .oogvault-preview-msg strong {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;

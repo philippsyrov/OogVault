@@ -25,6 +25,7 @@
   const detailMessages = document.getElementById('detail-messages');
   const detailTags = document.getElementById('detail-tags');
   const statsText = document.getElementById('stats-text');
+  const detailActions = document.getElementById('detail-actions');
 
   const tabConversations = document.getElementById('tab-conversations');
   const tabKnowledge = document.getElementById('tab-knowledge');
@@ -32,7 +33,6 @@
   const btnSettings = document.getElementById('btn-settings');
   const btnCopy = document.getElementById('btn-copy');
   const btnExport = document.getElementById('btn-export');
-  const btnContinue = document.getElementById('btn-continue');
   const btnDelete = document.getElementById('btn-delete');
   const btnExportKnowledge = document.getElementById('btn-export-knowledge');
 
@@ -73,7 +73,6 @@
     btnSettings.addEventListener('click', openSettings);
     btnCopy.addEventListener('click', copyConversation);
     btnExport.addEventListener('click', exportConversation);
-    btnContinue.addEventListener('click', continueConversation);
     btnDelete.addEventListener('click', deleteConversation);
     btnExportKnowledge.addEventListener('click', exportKnowledge);
   }
@@ -178,7 +177,7 @@
   }
 
   function renderConvCard(conv, matchedContent) {
-    const platformMap = { claude: 'C', chatgpt: 'G', gemini: 'Ge' };
+    const platformMap = { claude: 'C', chatgpt: 'G', gemini: 'Ge', perplexity: 'P' };
     const platformLabel = platformMap[conv.platform] || conv.platform?.charAt(0).toUpperCase() || '?';
     const platformClass = conv.platform || 'chatgpt';
     const timeStr = formatTime(conv.updated_at || conv.created_at);
@@ -209,6 +208,8 @@
     viewKnowledge.style.display = 'none';
     viewDetail.style.display = 'block';
     document.querySelector('.search-bar').style.display = 'none';
+    statsText.style.display = 'none';
+    detailActions.style.display = 'flex';
 
     const response = await sendMessage({ type: 'GET_CONVERSATION', id: conversationId });
     if (!response?.conversation) {
@@ -224,7 +225,6 @@
       <div class="detail-title">${escapeHtml(conv.title)}</div>
       <div class="detail-meta">
         ${conv.platform} · ${new Date(conv.created_at).toLocaleString()}
-        ${conv.url ? ` · <a href="${conv.url}" target="_blank" style="color: var(--oog-green-light);">Open original</a>` : ''}
       </div>
     `;
 
@@ -302,6 +302,8 @@
     viewDetail.style.display = 'none';
     viewKnowledge.style.display = 'none';
     document.querySelector('.search-bar').style.display = 'block';
+    statsText.style.display = 'inline';
+    detailActions.style.display = 'none';
 
     // Show/hide the Export All button in the header
     btnExportKnowledge.style.display = tab === 'knowledge' ? 'flex' : 'none';
@@ -540,20 +542,6 @@
       a.click();
       URL.revokeObjectURL(url);
       showToast('Exported as Markdown!');
-    }
-  }
-
-  async function continueConversation() {
-    if (!currentConversationId) return;
-
-    const response = await sendMessage({
-      type: 'GENERATE_SUMMARY',
-      conversationId: currentConversationId,
-    });
-
-    if (response?.summary) {
-      await navigator.clipboard.writeText(response.summary);
-      showToast('Summary copied — paste it into a new chat!');
     }
   }
 
