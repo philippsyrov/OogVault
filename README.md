@@ -30,7 +30,7 @@ You ask Claude how to set up a Docker container. A week later, you ask ChatGPT t
 
 ## The Solution
 
-**OogVault** is a browser extension that automatically saves your AI conversations locally, makes them searchable, and reminds you when you've already asked something — before you hit send.
+**OogVault** is a browser extension that saves your AI conversations locally with one click, makes them searchable, and reminds you when you've already asked something — before you hit send.
 
 > *"Claude has `skills.md` to remember best practices. I built the same thing for humans — except it auto-populates from every AI conversation you have."*
 
@@ -41,7 +41,7 @@ You ask Claude how to set up a Docker container. A week later, you ask ChatGPT t
 ### Core
 | Feature | Description |
 |---------|-------------|
-| **Auto-Capture** | Silently saves conversations from Claude and ChatGPT as you chat |
+| **One-Click Save** | Save any conversation from Claude or ChatGPT with a single click |
 | **Instant Search** | Full-text keyword search across all your saved conversations |
 | **Knowledge Nuggets** | Automatically extracts Q&A pairs from your conversations into distilled knowledge |
 | **Export** | Export conversations as Markdown, or your entire knowledge base as `knowledge.md` |
@@ -141,9 +141,9 @@ OogVault/
 ```
 User chats on Claude/ChatGPT
         ↓
-Content script captures messages (MutationObserver)
+User clicks "Save to OogVault"
         ↓
-Background service worker saves to IndexedDB
+Content script captures messages → Background service worker saves to IndexedDB
         ↓
     ┌───┴───────────────────┐
     ↓                       ↓
@@ -164,9 +164,8 @@ Access via the gear icon in the popup or right-click > Options.
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Auto-save | ✅ On | Automatically capture conversations |
 | Autocomplete | ✅ On | Show IDE-style suggestions while typing |
-| Trigger length | 20 chars | Minimum characters before autocomplete activates |
+| Trigger length | 10 chars | Minimum characters before autocomplete activates |
 | Export data | — | Download everything as JSON |
 | Clear data | — | Delete all vault contents |
 
@@ -177,13 +176,13 @@ Access via the gear icon in the popup or right-click > Options.
 - **Manifest V3** — Chrome extension standard
 - **Vanilla JavaScript** — No frameworks, no build step, no dependencies
 - **IndexedDB** — Local persistent storage (conversations, messages, tags, nuggets)
-- **Custom CSS** — Earthy greens, ancient gold, mystical blues
+- **Custom CSS** — Apple Liquid Glass aesthetic with frosted glass effects
 
 ---
 
 ## 🗺️ Roadmap
 
-- [x] Auto-capture (Claude + ChatGPT)
+- [x] One-click save (Claude + ChatGPT)
 - [x] Local storage & keyword search
 - [x] IDE-style autocomplete with answer previews
 - [x] Knowledge Nuggets (auto-extracted Q&A pairs)
