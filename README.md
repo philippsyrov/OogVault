@@ -2,7 +2,7 @@
   <img src="assets/banner.PNG" alt="OogVault — Master Oogway guards your AI conversations" width="100%" />
 </p>
 
-<h1 align="center">OogVault 🐢▬</h1>
+<h1 align="center">OogVault 🐢</h1>
 
 <p align="center">
   <strong>"Yesterday is history, tomorrow's still a mystery, chats rest within the vault in secrecy."</strong>
@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <em>Like having a search engine but ONLY for your AI conversations.</em>
+  <em>A local search engine for your AI conversations. Never re-ask the same question twice.</em>
 </p>
 
 ---
@@ -26,63 +26,23 @@
 
 You ask Claude how to set up a Docker container. A week later, you ask ChatGPT the same thing. You've already gotten the perfect answer — but it's buried in a conversation you can't find.
 
-**Free-tier users lose conversations after limits.** Pro users have thousands of chats with no way to search across them. Everyone wastes tokens re-asking questions they've already answered.
+Free-tier users lose conversations after limits. Pro users have thousands of chats with no way to search across them. Everyone wastes tokens re-asking questions they've already answered.
 
 ## The Solution
 
-**OogVault** is a browser extension that saves your AI conversations locally with one click, makes them searchable, and reminds you when you've already asked something — before you hit send.
-
-> *"Claude has `skills.md` to remember best practices. I built the same thing for humans — except it auto-populates from every AI conversation you have."*
+**OogVault** is a browser extension that saves your AI conversations locally, makes them instantly searchable, and reminds you when you've already asked something — right before you hit send.
 
 ---
 
 ## ✨ Features
 
-### Core
 | Feature | Description |
 |---------|-------------|
 | **One-Click Save** | Save any conversation from Claude, ChatGPT, Gemini, or Perplexity with a single click |
 | **Instant Search** | Full-text keyword search across all your saved conversations |
-| **Knowledge Nuggets** | Automatically extracts Q&A pairs from your conversations into distilled knowledge |
+| **IDE-Style Autocomplete** | Start typing a question and OogVault shows matching past questions with answer previews — like VS Code autocomplete, but for your brain |
+| **Knowledge Base** | Every saved conversation is automatically distilled into Q&A nuggets, auto-categorized by topic |
 | **Export** | Export conversations as Markdown, or your entire knowledge base as `knowledge.md` |
-
-### The Killer Feature: IDE-Style Autocomplete
-
-Start typing a question and OogVault checks if you've asked something similar before. A dropdown appears — like VS Code autocomplete — showing your past questions **with answer previews**.
-
-> No API call needed. No tokens burned. Just instant recall from your own vault.
-
-### Continue Conversation
-
-Hit your message limit? One click generates a summary of the conversation you can paste into a new chat. The AI picks up right where you left off — no manual re-explaining.
-
-### Knowledge Base
-
-Every conversation you save is automatically distilled into **Q&A nuggets** — compact question-answer pairs you can browse, search, and export as a portable `knowledge.md` file.
-
----
-
-## 🚀 Quick Start
-
-### Chrome
-
-```
-1. Clone or download this repo
-2. Open chrome://extensions/
-3. Enable Developer mode (top right toggle)
-4. Click Load unpacked → select the OogVault folder
-5. Visit claude.ai or chatgpt.com and start chatting
-```
-
-### Firefox
-
-```
-1. Open about:debugging#/runtime/this-firefox
-2. Click Load Temporary Add-on
-3. Select manifest.json from the OogVault folder
-```
-
-**That's it.** OogVault works in the background. Click the extension icon to search, browse, and manage your vault.
 
 ---
 
@@ -97,6 +57,50 @@ Every conversation you save is automatically distilled into **Q&A nuggets** — 
 
 ---
 
+## 🚀 Installation
+
+> Chrome Web Store listing coming soon. Until then, install it manually — it takes 2 minutes, we promise.
+
+### For Normal Humans™ (Chrome / Brave / Edge)
+
+**Step 1** — Download this repo as a ZIP
+
+> Click the green **Code** button at the top of this page → **Download ZIP**
+
+**Step 2** — Unzip it somewhere permanent
+
+> Like your Desktop or Documents folder. Don't delete it later — Chrome needs it to stay there.
+
+**Step 3** — Open Chrome and go to `chrome://extensions`
+
+> Just paste that in your address bar like a URL.
+
+**Step 4** — Turn on Developer Mode
+
+> There's a toggle in the top-right corner. Flip it on. Nothing scary happens, we promise.
+
+**Step 5** — Click "Load unpacked"
+
+> A file picker appears. Navigate to the unzipped **OogVault** folder and select it.
+
+**Step 6** — Done. The 🐢 appears in your toolbar.
+
+> Pin it for easy access: click the puzzle piece icon in Chrome's toolbar → pin OogVault.
+
+---
+
+### Firefox
+
+```
+1. Open about:debugging#/runtime/this-firefox
+2. Click "Load Temporary Add-on"
+3. Select manifest.json from the OogVault folder
+```
+
+> Note: Firefox temporary add-ons are removed when the browser restarts. A permanent Firefox listing is on the roadmap.
+
+---
+
 ## 🔒 Privacy
 
 This is non-negotiable.
@@ -107,6 +111,19 @@ This is non-negotiable.
 - **No analytics** — Zero telemetry, zero fingerprinting
 - **Open source** — Audit every line yourself
 - **Your data, your rules** — Export or nuke everything anytime
+
+---
+
+## ⚙️ Settings
+
+Access via the gear icon in the popup or right-click → Options.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Autocomplete | ✅ On | Show IDE-style suggestions while typing |
+| Trigger length | 10 chars | Minimum characters before autocomplete activates |
+| Export data | — | Download everything as JSON |
+| Clear data | — | Delete all vault contents |
 
 ---
 
@@ -125,7 +142,7 @@ OogVault/
 │   └── inject.css             # Injected UI styles
 ├── lib/
 │   ├── db.js                  # IndexedDB layer (conversations, messages, tags, nuggets)
-│   └── search.js              # Search engine, fuzzy matching, nugget extraction
+│   └── search.js              # Search engine, fuzzy matching, nugget extraction + topic classification
 ├── popup/
 │   ├── popup.html             # Popup UI with Conversations + Knowledge tabs
 │   ├── popup.js               # Popup logic
@@ -137,39 +154,6 @@ OogVault/
 └── assets/
     └── icon-*.png             # Extension icons
 ```
-
-### Data Flow
-
-```
-User chats on Claude/ChatGPT
-        ↓
-User clicks "Save to OogVault"
-        ↓
-Content script captures messages → Background service worker saves to IndexedDB
-        ↓
-    ┌───┴───────────────────┐
-    ↓                       ↓
-Conversations           Knowledge Nuggets
-(full message history)  (distilled Q&A pairs)
-    ↓                       ↓
-Popup search            Autocomplete previews
-Export as .md           Export as knowledge.md
-Tags & organization     Knowledge Base tab
-Continue conversation
-```
-
----
-
-## ⚙️ Settings
-
-Access via the gear icon in the popup or right-click > Options.
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Autocomplete | ✅ On | Show IDE-style suggestions while typing |
-| Trigger length | 10 chars | Minimum characters before autocomplete activates |
-| Export data | — | Download everything as JSON |
-| Clear data | — | Delete all vault contents |
 
 ---
 
@@ -184,19 +168,16 @@ Access via the gear icon in the popup or right-click > Options.
 
 ## 🗺️ Roadmap
 
-- [x] One-click save (Claude + ChatGPT)
+- [x] One-click save (Claude, ChatGPT, Gemini, Perplexity)
 - [x] Local storage & keyword search
 - [x] IDE-style autocomplete with answer previews
 - [x] Knowledge Nuggets (auto-extracted Q&A pairs)
-- [x] Knowledge Base tab + knowledge.md export
-- [x] Continue Conversation summaries
+- [x] Knowledge Base tab with auto topic categorization
+- [x] Per-category and full knowledge export
 - [x] Tags & organization
-- [x] Gemini support
-- [x] Perplexity support
-- [x] Smart topic clustering
-- [ ] Knowledge graph visualization
-- [ ] Firefox Add-on Store listing
 - [ ] Chrome Web Store listing
+- [ ] Firefox Add-on Store listing
+- [ ] Knowledge graph visualization
 
 ---
 
@@ -213,14 +194,14 @@ Pull requests welcome! To add support for a new AI platform:
 
 ## 📄 License
 
-MIT — do whatever you want with it.
+MIT — do whatever you want with it, just don't pretend you built it.
 
 ---
 
 <p align="center">
-  <em>"There are no accidents."</em> — Master Oogway <em>(definitely not copyrighted)</em>
+  <em>"There are no accidents."</em> — Master Oogway <em>(probably)</em>
 </p>
 
 <p align="center">
-  <strong>🐢 Save tokens. Save water. Save electricity. Search your vault first.</strong>
+  <strong>🐢 Search your vault first. Save the tokens.</strong>
 </p>
