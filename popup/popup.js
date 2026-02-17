@@ -111,7 +111,7 @@
       convListEl.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">
-            <span style="font-size:28px">🐢</span>
+            
           </div>
           <div class="empty-state-title">Your vault is empty</div>
           <div class="empty-state-text">

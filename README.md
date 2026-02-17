@@ -41,8 +41,9 @@ Free-tier users lose conversations after limits. Pro users have thousands of cha
 | **One-Click Save** | Save any conversation from Claude, ChatGPT, Gemini, or Perplexity with a single click |
 | **Instant Search** | Full-text keyword search across all your saved conversations |
 | **IDE-Style Autocomplete** | Start typing a question and OogVault shows matching past questions with answer previews — like VS Code autocomplete, but for your brain |
-| **Knowledge Base** | Every saved conversation is automatically distilled into Q&A nuggets, auto-categorized by topic |
-| **Export** | Export conversations as Markdown, or your entire knowledge base as `knowledge.md` |
+| **Knowledge Base** | Every saved conversation is automatically distilled into Q&A nuggets, auto-categorized by topic (Finance, Science, Tech, and more) |
+| **Export as Markdown** | Export individual conversations or your entire knowledge base as `.md` files |
+| **Full Backup** | Export everything as a `.json` backup from the Settings page — reimport-ready |
 
 ---
 
@@ -120,10 +121,9 @@ Access via the gear icon in the popup or right-click → Options.
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Autocomplete | ✅ On | Show IDE-style suggestions while typing |
-| Trigger length | 10 chars | Minimum characters before autocomplete activates |
-| Export data | — | Download everything as JSON |
-| Clear data | — | Delete all vault contents |
+| Autocomplete | ✅ On | Toggle IDE-style suggestions while typing on/off |
+| Export data | — | Download all conversations as a `.json` backup |
+| Clear data | — | Delete all vault contents (double-confirmed) |
 
 ---
 
@@ -175,9 +175,9 @@ OogVault/
 - [x] Knowledge Base tab with auto topic categorization
 - [x] Per-category and full knowledge export
 - [x] Tags & organization
+- [x] Full JSON backup from Settings
 - [ ] Chrome Web Store listing
 - [ ] Firefox Add-on Store listing
-- [ ] Knowledge graph visualization
 
 ---
 

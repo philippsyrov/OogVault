@@ -1,27 +1,30 @@
-/* ─── OogVault — Liquid Glass ─── */
+/* ─── OogVault — Anthropic Amber Glass ─── */
 
 :root {
-  --glass: rgba(255, 255, 255, 0.12);
-  --glass-strong: rgba(255, 255, 255, 0.18);
-  --glass-solid: rgba(255, 255, 255, 0.22);
-  --glass-hover: rgba(255, 255, 255, 0.20);
-  --glass-active: rgba(255, 255, 255, 0.28);
-  --glass-border: rgba(255, 255, 255, 0.28);
-  --glass-border-soft: rgba(255, 255, 255, 0.16);
-  --glass-glow-inset: inset 0 1px 1px rgba(255, 255, 255, 0.20);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-strong: rgba(255, 255, 255, 0.14);
+  --glass-solid: rgba(255, 255, 255, 0.18);
+  --glass-hover: rgba(255, 255, 255, 0.15);
+  --glass-active: rgba(255, 255, 255, 0.22);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-border-soft: rgba(255, 255, 255, 0.10);
+  --glass-glow-inset: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 
-  --text-1: rgba(255, 255, 255, 0.95);
-  --text-2: rgba(255, 255, 255, 0.65);
-  --text-3: rgba(255, 255, 255, 0.40);
+  --text-1: #e8ddd3;
+  --text-2: rgba(232, 221, 211, 0.65);
+  --text-3: rgba(232, 221, 211, 0.40);
 
-  --accent: #7aedc8;
-  --accent-soft: rgba(122, 237, 200, 0.18);
+  --accent: #D97757;
+  --accent-soft: rgba(217, 119, 87, 0.18);
   --danger: #ff7b7b;
   --danger-soft: rgba(255, 123, 123, 0.15);
 
-  --claude: #f0b080;
+  --claude: #D97757;
   --chatgpt: #80d8a0;
+
+  --bg-1: #1a1410;
+  --bg-2: #1e1814;
 
   --r: 22px;
   --r-lg: 28px;
@@ -37,10 +40,10 @@ body {
   max-height: 600px;
   /* Rich gradient background — gives glass something to refract */
   background:
-    radial-gradient(ellipse at 30% 10%, #1a3a2e 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 85%, #1a2a3e 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, #162420 0%, transparent 70%),
-    linear-gradient(145deg, #0f2018 0%, #0a1612 30%, #0e1a22 60%, #0c1418 100%);
+    radial-gradient(ellipse at 30% 10%, #2a1e16 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 85%, #1e1610 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, #221a14 0%, transparent 70%),
+    linear-gradient(145deg, #1a1410 0%, #14100c 30%, #1e1814 60%, #161210 100%);
   color: var(--text-1);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
   font-size: 13px;
@@ -77,8 +80,9 @@ body {
 }
 
 .header-logo {
-  font-size: 24px;
-  line-height: 1;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .header-title {
@@ -232,7 +236,7 @@ body {
   border-color: rgba(255, 255, 255, 0.35);
   box-shadow:
     0 8px 40px rgba(0, 0, 0, 0.2),
-    0 0 0 3px rgba(122, 237, 200, 0.10),
+    0 0 0 3px rgba(217, 119, 87, 0.10),
     var(--glass-glow-inset);
 }
 
@@ -324,9 +328,9 @@ body {
 }
 
 .conv-platform--claude {
-  background: rgba(240, 176, 128, 0.15);
+  background: rgba(217, 119, 87, 0.15);
   color: var(--claude);
-  border: 1px solid rgba(240, 176, 128, 0.25);
+  border: 1px solid rgba(217, 119, 87, 0.25);
 }
 
 .conv-platform--chatgpt {
@@ -521,7 +525,7 @@ body {
 
 .msg-bubble--user {
   background: var(--accent-soft);
-  border: 1px solid rgba(122, 237, 200, 0.15);
+  border: 1px solid rgba(217, 119, 87, 0.15);
   box-shadow: var(--glass-glow-inset);
   padding: 4px 12px 4px;
 }
@@ -747,7 +751,7 @@ body {
   color: var(--accent);
   font-size: 11px;
   font-weight: 700;
-  border: 1px solid rgba(122, 237, 200, 0.15);
+  border: 1px solid rgba(217, 119, 87, 0.15);
 }
 
 .nugget-answer {
@@ -849,7 +853,7 @@ body {
   color: var(--accent);
   font-size: 11px;
   font-weight: 700;
-  border: 1px solid rgba(122, 237, 200, 0.15);
+  border: 1px solid rgba(217, 119, 87, 0.15);
 }
 
 .category-header-right {
@@ -875,7 +879,7 @@ body {
 
 .category-export-btn:hover {
   background: var(--accent-soft);
-  border-color: rgba(122, 237, 200, 0.25);
+  border-color: rgba(217, 119, 87, 0.25);
   color: var(--accent);
   transform: scale(1.08);
 }
