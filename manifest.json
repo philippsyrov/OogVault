@@ -26,6 +26,14 @@
       "js": ["content/autocomplete.js", "content/chatgpt.js"],
       "css": ["content/inject.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": ["content/autocomplete.js", "content/gemini.js"],
+      "css": ["content/inject.css"],
+      "run_at": "document_idle"
     }
   ],
   "action": {

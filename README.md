@@ -41,7 +41,7 @@ You ask Claude how to set up a Docker container. A week later, you ask ChatGPT t
 ### Core
 | Feature | Description |
 |---------|-------------|
-| **One-Click Save** | Save any conversation from Claude or ChatGPT with a single click |
+| **One-Click Save** | Save any conversation from Claude, ChatGPT, or Gemini with a single click |
 | **Instant Search** | Full-text keyword search across all your saved conversations |
 | **Knowledge Nuggets** | Automatically extracts Q&A pairs from your conversations into distilled knowledge |
 | **Export** | Export conversations as Markdown, or your entire knowledge base as `knowledge.md` |
@@ -92,7 +92,7 @@ Every conversation you save is automatically distilled into **Q&A nuggets** — 
 |----------|-----|--------|
 | Claude | `claude.ai` | ✅ Supported |
 | ChatGPT | `chatgpt.com` / `chat.openai.com` | ✅ Supported |
-| Gemini | `gemini.google.com` | 🔜 Planned |
+| Gemini | `gemini.google.com` | ✅ Supported |
 | Perplexity | `perplexity.ai` | 🔜 Planned |
 
 ---
@@ -120,6 +120,7 @@ OogVault/
 │   ├── autocomplete.js        # IDE-style autocomplete dropdown
 │   ├── claude.js              # Claude.ai content script
 │   ├── chatgpt.js             # ChatGPT content script
+│   ├── gemini.js              # Google Gemini content script
 │   └── inject.css             # Injected UI styles
 ├── lib/
 │   ├── db.js                  # IndexedDB layer (conversations, messages, tags, nuggets)
@@ -189,9 +190,9 @@ Access via the gear icon in the popup or right-click > Options.
 - [x] Knowledge Base tab + knowledge.md export
 - [x] Continue Conversation summaries
 - [x] Tags & organization
-- [ ] Gemini support
+- [x] Gemini support
 - [ ] Perplexity support
-- [ ] Smart topic clustering
+- [x] Smart topic clustering
 - [ ] Knowledge graph visualization
 - [ ] Firefox Add-on Store listing
 - [ ] Chrome Web Store listing
