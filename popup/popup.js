@@ -232,7 +232,7 @@
         (m) => `
         <div class="msg-bubble msg-bubble--${m.role}">
           <span class="msg-role">${m.role === 'user' ? 'You' : 'Assistant'}</span>
-          <div class="msg-content">${escapeHtml(m.content)}</div>
+          <div class="msg-content">${escapeHtml(m.content.trim())}</div>
         </div>
       `
       )
@@ -302,6 +302,9 @@
     viewKnowledge.style.display = 'none';
     document.querySelector('.search-bar').style.display = 'block';
 
+    // Show/hide the Export All button in the header
+    btnExportKnowledge.style.display = tab === 'knowledge' ? 'flex' : 'none';
+
     if (tab === 'conversations') {
       viewList.style.display = 'block';
       searchInput.placeholder = 'Search your vault...';
@@ -321,56 +324,136 @@
 
   async function loadNuggets(query) {
     let response;
-    if (query && query.trim().length > 0) {
+    const hasQuery = query && query.trim().length > 0;
+    if (hasQuery) {
       response = await sendMessage({ type: 'SEARCH_NUGGETS', query, limit: 50 });
     } else {
       response = await sendMessage({ type: 'GET_ALL_NUGGETS' });
     }
 
     const nuggets = response?.nuggets || [];
-    renderNuggets(nuggets);
+    renderNuggets(nuggets, hasQuery);
   }
 
-  function renderNuggets(nuggets) {
+  /**
+   * @param {Array} nuggets - Nugget objects with category field.
+   * @param {boolean} isSearch - When true, matched categories auto-expand; otherwise all start collapsed.
+   */
+  function renderNuggets(nuggets, isSearch = false) {
     if (nuggets.length === 0) {
       nuggetsListEl.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">
             <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </div>
-          <div class="empty-state-title">No knowledge yet</div>
+          <div class="empty-state-title">${isSearch ? 'No results found' : 'No knowledge yet'}</div>
           <div class="empty-state-text">
-            Save conversations and OogVault will extract Q&A pairs as knowledge nuggets.
+            ${isSearch ? 'Try different keywords or check your spelling.' : 'Save conversations and OogVault will extract Q&A pairs as knowledge nuggets.'}
           </div>
         </div>
       `;
       return;
     }
 
-    nuggetsListEl.innerHTML = nuggets
-      .map(
-        (n) => `
-      <div class="nugget-card">
-        <div class="nugget-question">
-          <span class="nugget-q-label">Q</span>
-          ${escapeHtml(n.question)}
+    // Group nuggets by category
+    const grouped = {};
+    for (const n of nuggets) {
+      const cat = n.category || 'General';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(n);
+    }
+
+    // Sort categories alphabetically, "General" last
+    const sortedCategories = Object.keys(grouped).sort((a, b) => {
+      if (a === 'General') return 1;
+      if (b === 'General') return -1;
+      return a.localeCompare(b);
+    });
+
+    let html = '';
+
+    for (const category of sortedCategories) {
+      const items = grouped[category];
+      const catId = category.toLowerCase().replace(/\s+/g, '-');
+      // Collapsed by default; search results auto-expand
+      const isCollapsed = !isSearch;
+
+      html += `
+        <div class="knowledge-category" data-category="${escapeHtml(category)}">
+          <div class="category-header" data-cat-id="${catId}">
+            <div class="category-header-left">
+              <span class="category-name">${escapeHtml(category)}</span>
+              <span class="category-count">${items.length}</span>
+            </div>
+            <div class="category-header-right">
+              <button class="category-export-btn" data-export-category="${escapeHtml(category)}" title="Export ${escapeHtml(category)}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+              <span class="category-toggle${isCollapsed ? ' rotated' : ''}" data-cat-id="${catId}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </span>
+            </div>
+          </div>
+          <div class="category-body${isCollapsed ? ' collapsed' : ''}" id="cat-body-${catId}">
+      `;
+
+      for (const n of items) {
+        html += `
+          <div class="nugget-card">
+            <div class="nugget-question">
+              <span class="nugget-q-label">Q</span>
+              ${escapeHtml(n.question)}
+            </div>
+            <div class="nugget-answer">
+              <span class="nugget-a-label">A</span>
+              ${escapeHtml(n.answer)}
+            </div>
+            <div class="nugget-meta">
+              <span class="nugget-platform">${n.platform || ''}</span>
+              <span>${formatTime(n.created_at)}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+          </div>
         </div>
-        <div class="nugget-answer">
-          <span class="nugget-a-label">A</span>
-          ${escapeHtml(n.answer)}
-        </div>
-        <div class="nugget-meta">
-          <span class="nugget-platform">${n.platform || ''}</span>
-          <span>${formatTime(n.created_at)}</span>
-        </div>
-      </div>
-    `
-      )
-      .join('');
+      `;
+    }
+
+    nuggetsListEl.innerHTML = html;
+
+    // Bind collapse/expand toggles
+    nuggetsListEl.querySelectorAll('.category-header').forEach((header) => {
+      header.addEventListener('click', (e) => {
+        if (e.target.closest('.category-export-btn')) return;
+
+        const catId = header.dataset.catId;
+        const body = document.getElementById(`cat-body-${catId}`);
+        const toggle = header.querySelector('.category-toggle');
+
+        if (body.classList.contains('collapsed')) {
+          body.classList.remove('collapsed');
+          toggle.classList.remove('rotated');
+        } else {
+          body.classList.add('collapsed');
+          toggle.classList.add('rotated');
+        }
+      });
+    });
+
+    // Bind per-category export buttons
+    nuggetsListEl.querySelectorAll('.category-export-btn').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const category = btn.dataset.exportCategory;
+        await exportKnowledgeCategory(category);
+      });
+    });
   }
 
   async function exportKnowledge() {
-    btnExportKnowledge.textContent = 'Exporting...';
     btnExportKnowledge.disabled = true;
 
     const response = await sendMessage({ type: 'EXPORT_KNOWLEDGE' });
@@ -388,8 +471,25 @@
       showToast('No knowledge to export yet.');
     }
 
-    btnExportKnowledge.textContent = 'Export .md';
     btnExportKnowledge.disabled = false;
+  }
+
+  async function exportKnowledgeCategory(category) {
+    const response = await sendMessage({ type: 'EXPORT_KNOWLEDGE_CATEGORY', category });
+
+    if (response?.markdown) {
+      const slug = category.toLowerCase().replace(/\s+/g, '-');
+      const blob = new Blob([response.markdown], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `oogvault-knowledge-${slug}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`${category} knowledge exported!`);
+    } else {
+      showToast('No knowledge to export in this category.');
+    }
   }
 
   function showListView() {

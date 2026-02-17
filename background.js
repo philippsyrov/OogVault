@@ -25,6 +25,7 @@ import {
   extractNuggets,
   searchNuggetsText,
   exportKnowledgeMarkdown,
+  classifyTopic,
 } from './lib/search.js';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -150,16 +151,29 @@ async function handleMessage(message, sender) {
     /* ── Nuggets (Knowledge Base) ── */
     case 'GET_ALL_NUGGETS': {
       const nuggets = await getAllNuggets();
-      return { nuggets };
+      const classified = nuggets.map((n) => ({
+        ...n,
+        category: n.category || classifyTopic(n.question + ' ' + (n.answer || '')),
+      }));
+      return { nuggets: classified };
     }
 
     case 'SEARCH_NUGGETS': {
       const nuggets = await searchNuggetsText(message.query, message.limit);
-      return { nuggets };
+      const classified = nuggets.map((n) => ({
+        ...n,
+        category: n.category || classifyTopic(n.question + ' ' + (n.answer || '')),
+      }));
+      return { nuggets: classified };
     }
 
     case 'EXPORT_KNOWLEDGE': {
       const markdown = await exportKnowledgeMarkdown();
+      return { markdown };
+    }
+
+    case 'EXPORT_KNOWLEDGE_CATEGORY': {
+      const markdown = await exportKnowledgeMarkdown(message.category || null);
       return { markdown };
     }
 

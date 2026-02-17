@@ -180,11 +180,10 @@
       )
       .join('');
 
-    const previewIconUrl = chrome.runtime.getURL('assets/icon-48.png');
     preview.innerHTML = `
       <div class="oogvault-preview-header">
         <span class="oogvault-preview-title">
-          <img src="${previewIconUrl}" alt="">
+          <span class="oogvault-preview-icon">🐢</span>
           ${escapeHtml(conversation.title)}
         </span>
         <button class="oogvault-preview-close" title="Close">&times;</button>

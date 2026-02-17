@@ -252,10 +252,9 @@
   letter-spacing: -0.2px;
 }
 
-.oogvault-preview-title img {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
+.oogvault-preview-icon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .oogvault-preview-close {
