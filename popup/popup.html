@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OogVault</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <span class="header-logo">🐢</span>
+        <span class="header-title">OogVault</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-settings" class="icon-btn" title="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab tab--active" data-tab="conversations" id="tab-conversations">💬 Conversations</button>
+      <button class="tab" data-tab="knowledge" id="tab-knowledge">🧠 Knowledge</button>
+    </nav>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search your vault..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <!-- Main View: Conversation List -->
+    <div id="view-list" class="view">
+      <div id="conversations-list" class="conversations-list">
+        <div class="loading">Loading your vault...</div>
+      </div>
+    </div>
+
+    <!-- Detail View: Single Conversation -->
+    <div id="view-detail" class="view" style="display: none;">
+      <button id="btn-back" class="back-btn">← Back to Search</button>
+      <div id="detail-header" class="detail-header"></div>
+      <div id="detail-messages" class="detail-messages"></div>
+      <div id="detail-tags" class="detail-tags"></div>
+      <div class="detail-actions">
+        <button id="btn-copy" class="action-btn">📋 Copy</button>
+        <button id="btn-export" class="action-btn">📤 Export</button>
+        <button id="btn-continue" class="action-btn">🔄 Continue</button>
+        <button id="btn-delete" class="action-btn action-btn--danger">🗑️ Delete</button>
+      </div>
+    </div>
+
+    <!-- Knowledge Base View -->
+    <div id="view-knowledge" class="view" style="display: none;">
+      <div class="knowledge-toolbar">
+        <button id="btn-export-knowledge" class="action-btn knowledge-export-btn">📥 Export knowledge.md</button>
+      </div>
+      <div id="nuggets-list" class="nuggets-list">
+        <div class="loading">Loading knowledge...</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span id="stats-text">💾 Loading...</span>
+    </footer>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

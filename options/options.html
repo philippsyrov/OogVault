@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OogVault Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+
+    <header class="header">
+      <span class="logo">🐢</span>
+      <h1>OogVault Settings</h1>
+    </header>
+
+    <section class="section">
+      <h2>General</h2>
+
+      <label class="toggle-row">
+        <span class="toggle-label">
+          <strong>Auto-save conversations</strong>
+          <small>Automatically capture conversations as you chat</small>
+        </span>
+        <input type="checkbox" id="opt-autosave" class="toggle">
+      </label>
+
+      <label class="toggle-row">
+        <span class="toggle-label">
+          <strong>IDE-style autocomplete</strong>
+          <small>Show past question suggestions while typing</small>
+        </span>
+        <input type="checkbox" id="opt-autocomplete" class="toggle">
+      </label>
+
+      <label class="range-row">
+        <span class="range-label">
+          <strong>Autocomplete trigger length</strong>
+          <small>Minimum characters before autocomplete activates</small>
+        </span>
+        <div class="range-control">
+          <input type="range" id="opt-min-length" min="10" max="50" step="5" value="20">
+          <span id="opt-min-length-val" class="range-value">20</span>
+        </div>
+      </label>
+    </section>
+
+    <section class="section">
+      <h2>Data</h2>
+
+      <div class="info-row">
+        <span>Saved conversations:</span>
+        <strong id="stat-conversations">—</strong>
+      </div>
+      <div class="info-row">
+        <span>Total messages:</span>
+        <strong id="stat-messages">—</strong>
+      </div>
+
+      <div class="btn-row">
+        <button id="btn-export-all" class="btn">📤 Export All (JSON)</button>
+        <button id="btn-clear-all" class="btn btn--danger">🗑️ Clear All Data</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>About</h2>
+      <p class="about-text">
+        <strong>OogVault v0.1.0</strong><br>
+        "Yesterday is history, tomorrow's still a mystery,<br>
+        your chats rest within the vault in secrecy."<br><br>
+        100% local · 100% private · 100% free<br>
+        <a href="https://github.com/oogvault" target="_blank">GitHub</a>
+      </p>
+    </section>
+
+    <div id="status-msg" class="status-msg"></div>
+
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
