@@ -36,13 +36,26 @@ chrome.runtime.onInstalled.addListener(() => {
         settings: {
           autoSave: true,
           autocompleteEnabled: true,
-          autocompleteMinLength: 20,
+          autocompleteMinLength: 10,
           theme: 'default',
         },
       });
     }
   });
 });
+
+// Log vault contents on every service worker startup (helps verify persistence)
+(async function verifyVaultData() {
+  try {
+    const stats = await getStats();
+    console.log(
+      `[OogVault] 🐢 Service worker started. Vault contains: ` +
+      `${stats.conversations} conversations, ${stats.messages} messages, ${stats.nuggets} nuggets`
+    );
+  } catch (err) {
+    console.error('[OogVault] Failed to verify vault data on startup:', err);
+  }
+})();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender)
@@ -98,8 +111,13 @@ async function handleMessage(message, sender) {
     }
 
     case 'SEARCH_SIMILAR': {
-      const results = await searchSimilarQuestions(message.query, message.limit);
-      return { results };
+      try {
+        const results = await searchSimilarQuestions(message.query, message.limit);
+        return { results };
+      } catch (err) {
+        console.error('[OogVault] Search error:', err);
+        return { results: [] };
+      }
     }
 
     /* ── Tags ── */

@@ -6,8 +6,8 @@
 (function () {
   'use strict';
 
-  const DEBOUNCE_MS = 400;
-  const MIN_QUERY_LENGTH = 20;
+  const DEBOUNCE_MS = 300;
+  const MIN_QUERY_LENGTH = 10;
 
   let dropdown = null;
   let isVisible = false;
@@ -46,7 +46,7 @@
       <div class="oogvault-ac-results"></div>
       <div class="oogvault-ac-footer">
         <span><kbd>Tab</kbd> view</span>
-        <span><kbd>↑↓</kbd> navigate</span>
+        <span><kbd class="oogvault-ac-arrows">&uarr;&darr;</kbd> navigate</span>
         <span><kbd>Esc</kbd> dismiss</span>
       </div>
     `;
@@ -74,7 +74,7 @@
         <div class="oogvault-ac-question">→ ${escapeHtml(r.question)}</div>
         ${r.answer ? `<div class="oogvault-ac-answer">${escapeHtml(r.answer.substring(0, 120))}${r.answer.length > 120 ? '...' : ''}</div>` : ''}
         <div class="oogvault-ac-meta">
-          <span class="oogvault-ac-platform">${r.platform}</span>
+          <span class="oogvault-ac-platform" data-platform="${r.platform}">${r.platform}</span>
           <span class="oogvault-ac-time">${formatRelativeTime(r.timestamp)}</span>
         </div>
       </div>
@@ -180,9 +180,13 @@
       )
       .join('');
 
+    const previewIconUrl = chrome.runtime.getURL('assets/icon-48.png');
     preview.innerHTML = `
       <div class="oogvault-preview-header">
-        <span class="oogvault-preview-title">🐢 ${escapeHtml(conversation.title)}</span>
+        <span class="oogvault-preview-title">
+          <img src="${previewIconUrl}" alt="">
+          ${escapeHtml(conversation.title)}
+        </span>
         <button class="oogvault-preview-close" title="Close">&times;</button>
       </div>
       <div class="oogvault-preview-meta">
@@ -190,8 +194,8 @@
       </div>
       <div class="oogvault-preview-messages">${msgHtml}</div>
       <div class="oogvault-preview-actions">
-        <button class="oogvault-preview-btn oogvault-preview-btn--copy">📋 Copy Answer</button>
-        <button class="oogvault-preview-btn oogvault-preview-btn--summary">📝 Continue Chat</button>
+        <button class="oogvault-preview-btn oogvault-preview-btn--copy">Copy Answer</button>
+        <button class="oogvault-preview-btn oogvault-preview-btn--summary">Continue Chat</button>
       </div>
     `;
 
@@ -209,9 +213,9 @@
         .map((m) => m.content)
         .join('\n\n');
       navigator.clipboard.writeText(assistantMsgs);
-      preview.querySelector('.oogvault-preview-btn--copy').textContent = '✓ Copied!';
+      preview.querySelector('.oogvault-preview-btn--copy').textContent = 'Copied!';
       setTimeout(() => {
-        preview.querySelector('.oogvault-preview-btn--copy').textContent = '📋 Copy Answer';
+        preview.querySelector('.oogvault-preview-btn--copy').textContent = 'Copy Answer';
       }, 1500);
     });
 
@@ -223,9 +227,9 @@
       });
       if (resp?.summary) {
         navigator.clipboard.writeText(resp.summary);
-        preview.querySelector('.oogvault-preview-btn--summary').textContent = '✓ Summary copied!';
+        preview.querySelector('.oogvault-preview-btn--summary').textContent = 'Summary copied!';
         setTimeout(() => {
-          preview.querySelector('.oogvault-preview-btn--summary').textContent = '📝 Continue Chat';
+          preview.querySelector('.oogvault-preview-btn--summary').textContent = 'Continue Chat';
         }, 2000);
       }
     });
@@ -306,30 +310,76 @@
 
   /* ── Public API ── */
 
-  function attach(inputElement, platform) {
-    if (attachedInput === inputElement) return;
+  let pollTimer = null;
+  let lastPolledText = '';
+  let inputFinder = null;
+  let currentPlatform = '';
+  let lastBoundElement = null;
 
+  /**
+   * Bind event listeners to an input element.
+   * Tracks the last bound element to avoid duplicate bindings.
+   */
+  function bindListeners(el) {
+    if (el === lastBoundElement) return;
+    lastBoundElement = el;
+
+    el.addEventListener('input', onInputChange, { capture: true });
+    el.addEventListener('keydown', onKeyDown, { capture: true });
+    el.addEventListener('keyup', (e) => {
+      if (!['ArrowDown', 'ArrowUp', 'Tab', 'Escape'].includes(e.key)) {
+        onInputChange(e);
+      }
+    }, { capture: true });
+  }
+
+  /**
+   * Attach autocomplete to an AI chat input.
+   * @param {HTMLElement} inputElement - The initial input element found.
+   * @param {string} platform - Platform name (chatgpt, claude).
+   * @param {Function} [findInputFn] - Function to re-find the input element.
+   *   AI platforms (React/ProseMirror) frequently replace DOM nodes.
+   *   If provided, the poll will re-query the DOM each cycle to stay alive.
+   */
+  function attach(inputElement, platform, findInputFn) {
     console.log(`[OogVault] Autocomplete attached to ${platform} input`);
     attachedInput = inputElement;
+    currentPlatform = platform;
+    inputFinder = findInputFn || null;
 
-    inputElement.addEventListener('input', onInputChange);
-    inputElement.addEventListener('keydown', onKeyDown);
+    // Bind event listeners to the initial element
+    bindListeners(inputElement);
 
-    // For contenteditable divs, also listen to keyup
-    if (inputElement.getAttribute('contenteditable')) {
-      inputElement.addEventListener('keyup', (e) => {
-        if (!['ArrowDown', 'ArrowUp', 'Tab', 'Escape'].includes(e.key)) {
-          onInputChange(e);
-        }
-      });
-    }
+    // Polling: re-find the input element each cycle to handle DOM replacement.
+    // This is the primary mechanism — events are a bonus when they work.
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(() => {
+      if (!isEnabled) return;
+
+      // Re-find the input element (handles React re-renders)
+      let el = inputFinder ? inputFinder() : attachedInput;
+      if (!el) return;
+
+      // If the DOM element changed, update our reference and bind listeners
+      if (el !== attachedInput) {
+        console.log(`[OogVault] AC: input element replaced, re-binding (${currentPlatform})`);
+        attachedInput = el;
+        bindListeners(el);
+      }
+
+      const text = getInputText(el);
+      if (text !== lastPolledText) {
+        lastPolledText = text;
+        handleTextChange(text, el);
+      }
+    }, 500);
 
     // Hide dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (
         isVisible &&
         !dropdown?.contains(e.target) &&
-        e.target !== inputElement
+        e.target !== attachedInput
       ) {
         hideDropdown();
       }
@@ -341,6 +391,35 @@
         isEnabled = resp.settings.autocompleteEnabled !== false;
       }
     });
+  }
+
+  /**
+   * Polling-based text change handler (fallback for contenteditable inputs
+   * where input/keyup events don't fire reliably).
+   */
+  function handleTextChange(text, element) {
+    if (!isEnabled) return;
+
+    if (text.length < MIN_QUERY_LENGTH) {
+      hideDropdown();
+      return;
+    }
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(async () => {
+      const response = await sendMessage({
+        type: 'SEARCH_SIMILAR',
+        query: text,
+        limit: 5,
+      });
+
+      if (response?.results?.length > 0) {
+        showDropdown(response.results, element);
+      } else {
+        hideDropdown();
+      }
+    }, DEBOUNCE_MS);
   }
 
   /* ── Helpers ── */

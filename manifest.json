@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "OogVault",
   "version": "0.2.0",
-  "description": "Yesterday is history, tomorrow's still a mystery, your chats rest within the vault in secrecy. A local search engine for your AI conversations.",
+  "description": "Yesterday is history, tomorrow's still a mystery, chats rest within the vault in secrecy. A local search engine for your AI conversations.",
   "permissions": [
     "storage",
     "unlimitedStorage"

@@ -16,14 +16,16 @@
         <span class="header-title">OogVault</span>
       </div>
       <div class="header-actions">
-        <button id="btn-settings" class="icon-btn" title="Settings">⚙️</button>
+        <button id="btn-settings" class="icon-btn" title="Settings">
+          <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </div>
     </header>
 
     <!-- Tabs -->
     <nav class="tabs">
-      <button class="tab tab--active" data-tab="conversations" id="tab-conversations">💬 Conversations</button>
-      <button class="tab" data-tab="knowledge" id="tab-knowledge">🧠 Knowledge</button>
+      <button class="tab tab--active" data-tab="conversations" id="tab-conversations">Conversations</button>
+      <button class="tab" data-tab="knowledge" id="tab-knowledge">Knowledge</button>
     </nav>
 
     <!-- Search Bar -->
@@ -35,7 +37,9 @@
         autocomplete="off"
         spellcheck="false"
       >
-      <span class="search-icon">🔍</span>
+      <span class="search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
     </div>
 
     <!-- Main View: Conversation List -->
@@ -47,22 +51,25 @@
 
     <!-- Detail View: Single Conversation -->
     <div id="view-detail" class="view" style="display: none;">
-      <button id="btn-back" class="back-btn">← Back to Search</button>
+      <button id="btn-back" class="back-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
       <div id="detail-header" class="detail-header"></div>
       <div id="detail-messages" class="detail-messages"></div>
       <div id="detail-tags" class="detail-tags"></div>
       <div class="detail-actions">
-        <button id="btn-copy" class="action-btn">📋 Copy</button>
-        <button id="btn-export" class="action-btn">📤 Export</button>
-        <button id="btn-continue" class="action-btn">🔄 Continue</button>
-        <button id="btn-delete" class="action-btn action-btn--danger">🗑️ Delete</button>
+        <button id="btn-copy" class="action-btn">Copy</button>
+        <button id="btn-export" class="action-btn">Export</button>
+        <button id="btn-continue" class="action-btn">Continue</button>
+        <button id="btn-delete" class="action-btn action-btn--danger">Delete</button>
       </div>
     </div>
 
     <!-- Knowledge Base View -->
     <div id="view-knowledge" class="view" style="display: none;">
       <div class="knowledge-toolbar">
-        <button id="btn-export-knowledge" class="action-btn knowledge-export-btn">📥 Export knowledge.md</button>
+        <button id="btn-export-knowledge" class="action-btn knowledge-export-btn">Export .md</button>
       </div>
       <div id="nuggets-list" class="nuggets-list">
         <div class="loading">Loading knowledge...</div>
@@ -71,7 +78,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <span id="stats-text">💾 Loading...</span>
+      <span id="stats-text">Loading...</span>
     </footer>
 
   </div>
