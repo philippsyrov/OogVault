@@ -34,6 +34,15 @@
       "js": ["content/autocomplete.js", "content/gemini.js"],
       "css": ["content/inject.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.perplexity.ai/*",
+        "https://perplexity.ai/*"
+      ],
+      "js": ["content/autocomplete.js", "content/perplexity.js"],
+      "css": ["content/inject.css"],
+      "run_at": "document_idle"
     }
   ],
   "action": {

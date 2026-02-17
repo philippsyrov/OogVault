@@ -174,7 +174,7 @@
         (m) => `
       <div class="oogvault-preview-msg oogvault-preview-msg--${m.role}">
         <strong>${m.role === 'user' ? 'You' : 'Assistant'}:</strong>
-        <div>${escapeHtml(m.content.substring(0, 500))}${m.content.length > 500 ? '...' : ''}</div>
+        <div>${escapeHtml(m.content.trim())}</div>
       </div>
     `
       )
