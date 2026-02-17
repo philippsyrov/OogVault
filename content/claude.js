@@ -7,12 +7,9 @@
   'use strict';
 
   const PLATFORM = 'claude';
-  const SAVE_DEBOUNCE_MS = 3000;
   const URL_CHECK_INTERVAL_MS = 1500;
 
   let currentUrl = window.location.href;
-  let saveTimer = null;
-  let isAutoSaveEnabled = true;
   let observer = null;
 
   /* ── Initialization ── */
@@ -25,18 +22,10 @@
       // Inject save button IMMEDIATELY — don't wait for anything
       injectSaveButton();
 
-      // Load settings (non-blocking — don't let this prevent setup)
-      sendMessage({ type: 'GET_SETTINGS' }).then((settingsResp) => {
-        if (settingsResp?.settings) {
-          isAutoSaveEnabled = settingsResp.settings.autoSave !== false;
-        }
-      });
-
       waitForChatContainer(() => {
         console.log('[OogVault] Chat container found, setting up observers...');
         observeMessages();
         initAutocompleteForPlatform();
-        debouncedSave();
       });
 
       setInterval(checkUrlChange, URL_CHECK_INTERVAL_MS);
@@ -57,7 +46,6 @@
         waitForChatContainer(() => {
           observeMessages();
           initAutocompleteForPlatform();
-          debouncedSave();
         });
       }, 1000);
     }
@@ -172,52 +160,158 @@
    * plus data-testid based selectors as fallback.
    */
   function strategyRoleSelectors(root) {
-    // Claude.ai uses font-related classes to distinguish user/assistant messages
-    // e.g. font-user-message for user, font-claude-response for assistant
-    const selectorGroups = [
-      { sel: '[class*="font-user-message"]', role: 'user' },
-      { sel: '[class*="font-claude-response"]', role: 'assistant' },
-      { sel: '[data-testid*="human-turn"]', role: 'user' },
-      { sel: '[data-testid*="assistant-turn"]', role: 'assistant' },
-      { sel: '[data-testid*="user-message"]', role: 'user' },
-      { sel: '[data-testid*="assistant-message"]', role: 'assistant' },
-    ];
+    // Claude.ai uses data-testid="user-message" for user messages (exact match).
+    // Assistant messages have NO specific testid or class, so we use the turn-based
+    // approach: find user messages, walk up to their turn containers, then
+    // everything else in the conversation is assistant content.
 
-    const found = [];
-    for (const { sel, role } of selectorGroups) {
-      root.querySelectorAll(sel).forEach((el) => {
-        const text = (el.innerText || '').trim();
-        if (text.length > 3) {
-          found.push({ el, role, text });
-        }
-      });
-    }
+    // Step 1: Find user message elements via multiple strategies
+    const userElements = [];
+    const seen = new Set();
 
-    console.log(`[OogVault] S1: found ${found.length} role-matching elements`);
-    if (found.length === 0) return [];
-
-    // Deduplicate: keep only outermost elements (remove children when parent also matched)
-    const deduped = found.filter((item) =>
-      !found.some((other) => other !== item && other.el.contains(item.el))
-    );
-
-    // Sort by DOM position
-    deduped.sort((a, b) =>
-      a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
-    );
-
-    // Merge adjacent messages of the same role into one
-    const merged = [];
-    for (const d of deduped) {
-      const last = merged[merged.length - 1];
-      if (last && last.role === d.role) {
-        last.content += '\n\n' + d.text;
-      } else {
-        merged.push({ role: d.role, content: d.text });
+    function addUser(el) {
+      if (seen.has(el)) return;
+      const text = (el.innerText || '').trim();
+      if (text.length > 3) {
+        seen.add(el);
+        userElements.push({ el, role: 'user', text });
       }
     }
 
-    console.log(`[OogVault] S1: after dedup+merge: ${merged.length} messages`);
+    // Exact data-testid match (most reliable for Claude.ai)
+    root.querySelectorAll('[data-testid="user-message"]').forEach(addUser);
+
+    // Class-based fallbacks
+    root.querySelectorAll('[class*="font-user-message"]').forEach(addUser);
+    root.querySelectorAll('[data-testid*="human-turn"]').forEach(addUser);
+
+    // Deduplicate: keep only outermost
+    const dedupedUsers = userElements.filter((item) =>
+      !userElements.some((other) => other !== item && other.el.contains(item.el))
+    );
+
+    console.log(`[OogVault] S1: found ${dedupedUsers.length} user elements`);
+
+    if (dedupedUsers.length === 0) return [];
+
+    // Step 2: Always use turn-based extraction since Claude has no assistant selectors
+    const turnResult = strategyTurnBased(root, dedupedUsers);
+    if (turnResult.length >= 2) return turnResult;
+
+    // Fallback: return just the user messages if turn-based didn't work
+    return dedupedUsers.map((d) => ({ role: d.role, content: d.text }));
+  }
+
+  /**
+   * Turn-based extraction: finds user elements, walks up to their "turn" ancestor,
+   * then collects sibling turns as alternating user/assistant messages.
+   */
+  function strategyTurnBased(root, userItems) {
+    console.log('[OogVault] Turn-based: starting with', userItems.length, 'known user elements');
+
+    const MIN_TURN_LENGTH = 20;
+
+    // Walk up from an element to find the conversation-level turn container.
+    // We keep walking up until we find a parent whose children include at least
+    // one sibling with substantial content (not just timestamps or small UI).
+    function findTurnAncestor(el) {
+      let current = el;
+      let depth = 0;
+      while (current && current !== root && depth < 20) {
+        const parent = current.parentElement;
+        if (!parent || parent === root) return current;
+
+        const siblings = Array.from(parent.children).filter((c) => {
+          if (c === current) return false;
+          try { return (c.innerText || '').trim().length > MIN_TURN_LENGTH; } catch { return false; }
+        });
+
+        // We need at least one sibling with substantial content (the assistant response)
+        if (siblings.length >= 1) return current;
+
+        current = parent;
+        depth++;
+      }
+      return current;
+    }
+
+    // Find turn ancestors for all user elements
+    const userTurns = userItems.map((item) => ({
+      turnEl: findTurnAncestor(item.el),
+      userEl: item.el,
+      text: item.text,
+    }));
+
+    if (userTurns.length === 0) return [];
+
+    // Find the common parent (the conversation container)
+    const turnContainer = userTurns[0].turnEl.parentElement;
+    if (!turnContainer) return [];
+
+    console.log('[OogVault] Turn-based: turn container tag:', turnContainer.tagName,
+      'children:', turnContainer.children.length);
+
+    // Collect all child elements that have enough content to be a real turn
+    // (filters out timestamps, buttons, and other small UI fragments)
+    const allTurns = Array.from(turnContainer.children).filter((c) => {
+      try { return (c.innerText || '').trim().length > MIN_TURN_LENGTH; } catch { return false; }
+    });
+
+    console.log('[OogVault] Turn-based: substantial turns:', allTurns.length);
+
+    // If we only found 1 turn (just the user), the container level is wrong.
+    // Try going up one more level.
+    if (allTurns.length < 2 && turnContainer.parentElement && turnContainer.parentElement !== root) {
+      const higherContainer = turnContainer.parentElement;
+      const higherTurns = Array.from(higherContainer.children).filter((c) => {
+        try { return (c.innerText || '').trim().length > MIN_TURN_LENGTH; } catch { return false; }
+      });
+      console.log('[OogVault] Turn-based: trying higher container:', higherContainer.tagName,
+        'substantial children:', higherTurns.length);
+
+      if (higherTurns.length >= 2) {
+        return buildMessages(higherTurns, userItems);
+      }
+
+      // Try one more level up
+      if (higherContainer.parentElement && higherContainer.parentElement !== root) {
+        const topContainer = higherContainer.parentElement;
+        const topTurns = Array.from(topContainer.children).filter((c) => {
+          try { return (c.innerText || '').trim().length > MIN_TURN_LENGTH; } catch { return false; }
+        });
+        console.log('[OogVault] Turn-based: trying top container:', topContainer.tagName,
+          'substantial children:', topTurns.length);
+        if (topTurns.length >= 2) {
+          return buildMessages(topTurns, userItems);
+        }
+      }
+    }
+
+    return buildMessages(allTurns, userItems);
+  }
+
+  function buildMessages(turns, userItems) {
+    const messages = [];
+    for (const turn of turns) {
+      const text = (turn.innerText || '').trim();
+      if (text.length < 10) continue;
+
+      const isUser = userItems.some((u) => turn.contains(u.el) || u.el.contains(turn));
+      messages.push({ role: isUser ? 'user' : 'assistant', content: text });
+    }
+
+    // Merge adjacent same-role messages
+    const merged = [];
+    for (const m of messages) {
+      const last = merged[merged.length - 1];
+      if (last && last.role === m.role) {
+        last.content += '\n\n' + m.content;
+      } else {
+        merged.push({ ...m });
+      }
+    }
+
+    console.log(`[OogVault] Turn-based: extracted ${merged.length} messages`);
     return merged;
   }
 
@@ -232,16 +326,37 @@
 
     console.log('[OogVault] S2: data-testids found:', allTestIds.map((t) => t.id).join(', '));
 
+    // Exact testid matches for actual message elements (avoid false positives like "user-menu-button")
+    const userTestIds = ['user-message', 'human-turn', 'user-turn'];
+    const assistantTestIds = ['assistant-message', 'assistant-turn', 'bot-message'];
+
     const messages = [];
     for (const { id, el } of allTestIds) {
       const lower = id.toLowerCase();
       const text = (el.innerText || '').trim();
       if (text.length < 5) continue;
 
-      if (lower.includes('human') || lower.includes('user')) {
+      if (userTestIds.some((t) => lower === t || lower.startsWith(t + '-'))) {
         messages.push({ role: 'user', content: text });
-      } else if (lower.includes('assistant') || lower.includes('bot') || lower.includes('response')) {
+      } else if (assistantTestIds.some((t) => lower === t || lower.startsWith(t + '-'))) {
         messages.push({ role: 'assistant', content: text });
+      }
+    }
+
+    // If only user messages found, try turn-based extraction
+    const userOnly = messages.every((m) => m.role === 'user');
+    if (userOnly && messages.length > 0) {
+      console.log('[OogVault] S2: only user messages found, trying turn-based from testids');
+      const userEls = [];
+      for (const { id, el } of allTestIds) {
+        if (userTestIds.includes(id.toLowerCase())) {
+          const text = (el.innerText || '').trim();
+          if (text.length > 3) userEls.push({ el, role: 'user', text });
+        }
+      }
+      if (userEls.length > 0) {
+        const turnResult = strategyTurnBased(root, userEls);
+        if (turnResult.length >= 2) return turnResult;
       }
     }
 
@@ -296,20 +411,30 @@
     const messages = [];
     const children = Array.from(bestContainer.children);
 
+    // Check if any children contain known user-message elements
+    const userMsgSelectors = '[class*="font-user-message"], [data-testid*="human"], [data-testid*="user"]';
+
     for (const child of children) {
       const text = (child.innerText || '').trim();
       if (text.length < 5) continue;
 
-      // Simple role detection: check for role hints in attributes/classes
       let role = 'assistant';
       try {
         const cls = String(child.className || '').toLowerCase();
         const tid = (child.getAttribute('data-testid') || '').toLowerCase();
-        const childClasses = child.innerHTML.substring(0, 300).toLowerCase();
+        const html = child.innerHTML.substring(0, 500).toLowerCase();
 
+        // Check attributes on the element itself
         if (cls.includes('human') || cls.includes('user') ||
-            tid.includes('human') || tid.includes('user') ||
-            childClasses.includes('human') || childClasses.includes('user-turn')) {
+            tid.includes('human') || tid.includes('user')) {
+          role = 'user';
+        }
+        // Check if it contains a user-message child element
+        else if (child.querySelector(userMsgSelectors)) {
+          role = 'user';
+        }
+        // Check inner HTML for user-related class hints
+        else if (html.includes('font-user-message') || html.includes('user-turn') || html.includes('human-turn')) {
           role = 'user';
         }
       } catch { /* ignore */ }
@@ -370,12 +495,6 @@
 
   /* ── Save Conversation ── */
 
-  function debouncedSave() {
-    if (!isAutoSaveEnabled) return;
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveCurrentConversation, SAVE_DEBOUNCE_MS);
-  }
-
   async function saveCurrentConversation() {
     const convId = getConversationId();
     if (!convId) {
@@ -410,7 +529,6 @@
       const resp = await sendMessage({ type: 'SAVE_CONVERSATION', conversation });
       if (resp?.success) {
         console.log(`[OogVault] ✅ Saved ${messages.length} messages for conversation ${convId}`);
-        updateSaveButtonState(true);
         return { success: true, messageCount: messages.length };
       } else {
         console.error('[OogVault] Background save returned error:', resp?.error);
@@ -428,17 +546,8 @@
     const container = getChatContainer();
     if (!container) return;
 
-    observer = new MutationObserver((mutations) => {
-      let hasNewContent = false;
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0 || mutation.type === 'characterData') {
-          hasNewContent = true;
-          break;
-        }
-      }
-      if (hasNewContent) {
-        debouncedSave();
-      }
+    observer = new MutationObserver(() => {
+      // Observer kept for potential future use (e.g. detecting conversation changes)
     });
 
     observer.observe(container, {
@@ -456,7 +565,7 @@
     const btn = document.createElement('button');
     btn.id = 'oogvault-save-btn';
     btn.className = 'oogvault-save-btn';
-    btn.innerHTML = '🐢 Save to Vault';
+    btn.innerHTML = '🐢 Save to OogVault';
     btn.title = 'Save this conversation to OogVault';
 
     btn.addEventListener('click', async () => {
@@ -467,37 +576,27 @@
         const result = await saveCurrentConversation();
 
         if (result?.success) {
-          btn.innerHTML = `🐢 ✓ Saved ${result.messageCount} msgs!`;
+          btn.innerHTML = `🐢 Saved ${result.messageCount} msgs!`;
           btn.classList.add('oogvault-save-btn--saved');
         } else {
-          btn.innerHTML = `🐢 ✗ ${result?.reason || 'unknown error'}`;
+          btn.innerHTML = `🐢 ${result?.reason || 'Save failed'}`;
           btn.classList.add('oogvault-save-btn--error');
           console.error('[OogVault] Save failed. Reason:', result?.reason);
         }
       } catch (err) {
-        btn.innerHTML = '🐢 ✗ Error — check console';
+        btn.innerHTML = '🐢 Error — check console';
         btn.classList.add('oogvault-save-btn--error');
         console.error('[OogVault] Save threw an error:', err);
       }
 
       setTimeout(() => {
         btn.disabled = false;
-        btn.innerHTML = '🐢 Save to Vault';
+        btn.innerHTML = '🐢 Save to OogVault';
         btn.classList.remove('oogvault-save-btn--saved', 'oogvault-save-btn--error');
       }, 3000);
     });
 
     document.body.appendChild(btn);
-  }
-
-  function updateSaveButtonState(isSaved) {
-    const btn = document.getElementById('oogvault-save-btn');
-    if (btn && isSaved) {
-      btn.innerHTML = '🐢 ✓ Auto-saved';
-      setTimeout(() => {
-        btn.innerHTML = '🐢 Save to Vault';
-      }, 1500);
-    }
   }
 
   /* ── Autocomplete Integration ── */
@@ -516,12 +615,14 @@
 
     const inputEl = findInput();
     if (inputEl) {
-      window.OogVaultAutocomplete.attach(inputEl, PLATFORM);
+      // Pass finder function so autocomplete can re-find the input
+      // after Claude's React re-renders replace the DOM node
+      window.OogVaultAutocomplete.attach(inputEl, PLATFORM, findInput);
     } else {
       const retryInterval = setInterval(() => {
         const el = findInput();
         if (el) {
-          window.OogVaultAutocomplete.attach(el, PLATFORM);
+          window.OogVaultAutocomplete.attach(el, PLATFORM, findInput);
           clearInterval(retryInterval);
         }
       }, 1000);

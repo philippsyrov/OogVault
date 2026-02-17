@@ -1,0 +1,10 @@
+# Internal docs
+OOGVAULT_SPEC.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

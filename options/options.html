@@ -10,20 +10,15 @@
   <div class="container">
 
     <header class="header">
-      <span class="logo">🐢</span>
-      <h1>OogVault Settings</h1>
+      <div class="header-brand">
+        <span class="header-logo">🐢</span>
+        <h1 class="header-title">OogVault Settings</h1>
+      </div>
+      <span class="header-version">v0.2.0</span>
     </header>
 
-    <section class="section">
-      <h2>General</h2>
-
-      <label class="toggle-row">
-        <span class="toggle-label">
-          <strong>Auto-save conversations</strong>
-          <small>Automatically capture conversations as you chat</small>
-        </span>
-        <input type="checkbox" id="opt-autosave" class="toggle">
-      </label>
+    <section class="glass-card">
+      <h2 class="section-label">General</h2>
 
       <label class="toggle-row">
         <span class="toggle-label">
@@ -45,36 +40,48 @@
       </label>
     </section>
 
-    <section class="section">
-      <h2>Data</h2>
+    <section class="glass-card">
+      <h2 class="section-label">Data</h2>
 
       <div class="info-row">
-        <span>Saved conversations:</span>
-        <strong id="stat-conversations">—</strong>
+        <span>Saved conversations</span>
+        <strong id="stat-conversations">--</strong>
       </div>
       <div class="info-row">
-        <span>Total messages:</span>
-        <strong id="stat-messages">—</strong>
+        <span>Total messages</span>
+        <strong id="stat-messages">--</strong>
       </div>
 
       <div class="btn-row">
-        <button id="btn-export-all" class="btn">📤 Export All (JSON)</button>
-        <button id="btn-clear-all" class="btn btn--danger">🗑️ Clear All Data</button>
+        <button id="btn-export-all" class="glass-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export All
+        </button>
+        <button id="btn-clear-all" class="glass-btn glass-btn--danger">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Clear All Data
+        </button>
       </div>
     </section>
 
-    <section class="section">
-      <h2>About</h2>
+    <section class="glass-card about-card">
+      <h2 class="section-label">About</h2>
       <p class="about-text">
-        <strong>OogVault v0.1.0</strong><br>
         "Yesterday is history, tomorrow's still a mystery,<br>
-        your chats rest within the vault in secrecy."<br><br>
-        100% local · 100% private · 100% free<br>
-        <a href="https://github.com/oogvault" target="_blank">GitHub</a>
+        chats rest within the vault in secrecy."
       </p>
+      <div class="about-badges">
+        <span class="badge">100% local</span>
+        <span class="badge">100% private</span>
+        <span class="badge">100% free</span>
+      </div>
+      <a href="https://github.com/PhilT3ch/OogVault" target="_blank" class="github-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
     </section>
 
-    <div id="status-msg" class="status-msg"></div>
+    <div id="status-msg" class="toast"></div>
 
   </div>
 

@@ -5,7 +5,7 @@
 <h1 align="center">OogVault 🐢▬</h1>
 
 <p align="center">
-  <strong>"Yesterday is history, tomorrow's still a mystery, your chats rest within the vault in secrecy."</strong>
+  <strong>"Yesterday is history, tomorrow's still a mystery, chats rest within the vault in secrecy."</strong>
 </p>
 
 <p align="center">

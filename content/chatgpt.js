@@ -7,12 +7,9 @@
   'use strict';
 
   const PLATFORM = 'chatgpt';
-  const SAVE_DEBOUNCE_MS = 3000;
   const URL_CHECK_INTERVAL_MS = 1500;
 
   let currentUrl = window.location.href;
-  let saveTimer = null;
-  let isAutoSaveEnabled = true;
   let observer = null;
 
   /* ── Initialization ── */
@@ -20,16 +17,10 @@
   async function init() {
     console.log('[OogVault] ChatGPT content script loaded 🐢');
 
-    const settingsResp = await sendMessage({ type: 'GET_SETTINGS' });
-    if (settingsResp?.settings) {
-      isAutoSaveEnabled = settingsResp.settings.autoSave !== false;
-    }
-
     waitForChatContainer(() => {
       observeMessages();
       injectSaveButton();
       initAutocompleteForPlatform();
-      debouncedSave();
     });
 
     setInterval(checkUrlChange, URL_CHECK_INTERVAL_MS);
@@ -47,7 +38,6 @@
           observeMessages();
           injectSaveButton();
           initAutocompleteForPlatform();
-          debouncedSave();
         });
       }, 1000);
     }
@@ -184,12 +174,6 @@
 
   /* ── Save Conversation ── */
 
-  function debouncedSave() {
-    if (!isAutoSaveEnabled) return;
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveCurrentConversation, SAVE_DEBOUNCE_MS);
-  }
-
   async function saveCurrentConversation() {
     const convId = getConversationId();
     if (!convId) {
@@ -224,7 +208,6 @@
       const resp = await sendMessage({ type: 'SAVE_CONVERSATION', conversation });
       if (resp?.success) {
         console.log(`[OogVault] ✅ Saved ${messages.length} messages for conversation ${convId}`);
-        updateSaveButtonState(true);
         return { success: true, messageCount: messages.length };
       } else {
         console.error('[OogVault] Background save returned error:', resp?.error);
@@ -242,17 +225,8 @@
     const container = getChatContainer();
     if (!container) return;
 
-    observer = new MutationObserver((mutations) => {
-      let hasNewContent = false;
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0 || mutation.type === 'characterData') {
-          hasNewContent = true;
-          break;
-        }
-      }
-      if (hasNewContent) {
-        debouncedSave();
-      }
+    observer = new MutationObserver(() => {
+      // Observer kept for potential future use (e.g. detecting conversation changes)
     });
 
     observer.observe(container, {
@@ -270,7 +244,7 @@
     const btn = document.createElement('button');
     btn.id = 'oogvault-save-btn';
     btn.className = 'oogvault-save-btn';
-    btn.innerHTML = '🐢 Save to Vault';
+    btn.innerHTML = '🐢 Save to OogVault';
     btn.title = 'Save this conversation to OogVault';
 
     btn.addEventListener('click', async () => {
@@ -281,37 +255,27 @@
         const result = await saveCurrentConversation();
 
         if (result?.success) {
-          btn.innerHTML = `🐢 ✓ Saved ${result.messageCount} msgs!`;
+          btn.innerHTML = `🐢 Saved ${result.messageCount} msgs!`;
           btn.classList.add('oogvault-save-btn--saved');
         } else {
-          btn.innerHTML = `🐢 ✗ ${result?.reason || 'unknown error'}`;
+          btn.innerHTML = `🐢 ${result?.reason || 'Save failed'}`;
           btn.classList.add('oogvault-save-btn--error');
           console.error('[OogVault] Save failed. Reason:', result?.reason);
         }
       } catch (err) {
-        btn.innerHTML = '🐢 ✗ Error — check console';
+        btn.innerHTML = '🐢 Error — check console';
         btn.classList.add('oogvault-save-btn--error');
         console.error('[OogVault] Save threw an error:', err);
       }
 
       setTimeout(() => {
         btn.disabled = false;
-        btn.innerHTML = '🐢 Save to Vault';
+        btn.innerHTML = '🐢 Save to OogVault';
         btn.classList.remove('oogvault-save-btn--saved', 'oogvault-save-btn--error');
       }, 3000);
     });
 
     document.body.appendChild(btn);
-  }
-
-  function updateSaveButtonState(isSaved) {
-    const btn = document.getElementById('oogvault-save-btn');
-    if (btn && isSaved) {
-      btn.innerHTML = '🐢 ✓ Auto-saved';
-      setTimeout(() => {
-        btn.innerHTML = '🐢 Save to Vault';
-      }, 1500);
-    }
   }
 
   /* ── Autocomplete Integration ── */
@@ -331,12 +295,14 @@
 
     const inputEl = findInput();
     if (inputEl) {
-      window.OogVaultAutocomplete.attach(inputEl, PLATFORM);
+      // Pass finder function so autocomplete can re-find the input
+      // after ChatGPT's React re-renders replace the DOM node
+      window.OogVaultAutocomplete.attach(inputEl, PLATFORM, findInput);
     } else {
       const retryInterval = setInterval(() => {
         const el = findInput();
         if (el) {
-          window.OogVaultAutocomplete.attach(el, PLATFORM);
+          window.OogVaultAutocomplete.attach(el, PLATFORM, findInput);
           clearInterval(retryInterval);
         }
       }, 1000);

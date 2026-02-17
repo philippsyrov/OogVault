@@ -5,7 +5,6 @@
 (function () {
   'use strict';
 
-  const optAutoSave = document.getElementById('opt-autosave');
   const optAutocomplete = document.getElementById('opt-autocomplete');
   const optMinLength = document.getElementById('opt-min-length');
   const optMinLengthVal = document.getElementById('opt-min-length-val');
@@ -25,7 +24,6 @@
     const resp = await sendMessage({ type: 'GET_SETTINGS' });
     const settings = resp?.settings || {};
 
-    optAutoSave.checked = settings.autoSave !== false;
     optAutocomplete.checked = settings.autocompleteEnabled !== false;
     optMinLength.value = settings.autocompleteMinLength || 20;
     optMinLengthVal.textContent = optMinLength.value;
@@ -40,7 +38,6 @@
   }
 
   function bindEvents() {
-    optAutoSave.addEventListener('change', saveSettings);
     optAutocomplete.addEventListener('change', saveSettings);
 
     optMinLength.addEventListener('input', () => {
@@ -54,7 +51,6 @@
 
   async function saveSettings() {
     const settings = {
-      autoSave: optAutoSave.checked,
       autocompleteEnabled: optAutocomplete.checked,
       autocompleteMinLength: parseInt(optMinLength.value, 10),
     };

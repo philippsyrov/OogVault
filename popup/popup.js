@@ -56,11 +56,8 @@
   async function updateStats() {
     const response = await sendMessage({ type: 'GET_STATS' });
     if (response?.stats) {
-      const parts = [`💾 ${response.stats.conversations} conversations`, `${response.stats.messages} messages`];
-      if (response.stats.nuggets > 0) {
-        parts.push(`🧠 ${response.stats.nuggets} nuggets`);
-      }
-      statsText.textContent = parts.join(' · ');
+      const s = response.stats;
+      statsText.textContent = `${s.conversations} conversations · ${s.messages} messages · ${s.nuggets} nuggets`;
     }
   }
 
@@ -114,11 +111,13 @@
     if (conversations.length === 0) {
       convListEl.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">🐢</div>
+          <div class="empty-state-icon">
+            <span style="font-size:28px">🐢</span>
+          </div>
           <div class="empty-state-title">Your vault is empty</div>
           <div class="empty-state-text">
-            Visit claude.ai or chat.openai.com and start chatting.
-            OogVault will automatically save your conversations.
+            Visit Claude or ChatGPT and start chatting.
+            OogVault will save your conversations.
           </div>
         </div>
       `;
@@ -152,7 +151,9 @@
     if (results.length === 0) {
       convListEl.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
           <div class="empty-state-title">No results found</div>
           <div class="empty-state-text">
             Try different keywords or check your spelling.
@@ -177,13 +178,13 @@
   }
 
   function renderConvCard(conv, matchedContent) {
-    const platformIcon = conv.platform === 'claude' ? '🟠' : '🟢';
+    const platformLabel = conv.platform === 'claude' ? 'C' : 'G';
     const platformClass = conv.platform === 'claude' ? 'claude' : 'chatgpt';
     const timeStr = formatTime(conv.updated_at || conv.created_at);
 
     return `
       <div class="conv-card" data-id="${conv.id}">
-        <div class="conv-platform conv-platform--${platformClass}">${platformIcon}</div>
+        <div class="conv-platform conv-platform--${platformClass}">${platformLabel}</div>
         <div class="conv-info">
           <div class="conv-title">${escapeHtml(conv.title)}</div>
           <div class="conv-meta">
@@ -191,7 +192,7 @@
             <span>·</span>
             <span>${timeStr}</span>
           </div>
-          ${matchedContent ? `<div class="conv-match">"${escapeHtml(matchedContent.substring(0, 100))}"</div>` : ''}
+          ${matchedContent ? `<div class="conv-match">${escapeHtml(matchedContent.substring(0, 100))}</div>` : ''}
         </div>
       </div>
     `;
@@ -334,10 +335,12 @@
     if (nuggets.length === 0) {
       nuggetsListEl.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">🧠</div>
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
           <div class="empty-state-title">No knowledge yet</div>
           <div class="empty-state-text">
-            Save conversations and OogVault will automatically extract Q&A pairs as knowledge nuggets.
+            Save conversations and OogVault will extract Q&A pairs as knowledge nuggets.
           </div>
         </div>
       `;
@@ -367,7 +370,7 @@
   }
 
   async function exportKnowledge() {
-    btnExportKnowledge.textContent = '⏳ Exporting...';
+    btnExportKnowledge.textContent = 'Exporting...';
     btnExportKnowledge.disabled = true;
 
     const response = await sendMessage({ type: 'EXPORT_KNOWLEDGE' });
@@ -385,7 +388,7 @@
       showToast('No knowledge to export yet.');
     }
 
-    btnExportKnowledge.textContent = '📥 Export knowledge.md';
+    btnExportKnowledge.textContent = 'Export .md';
     btnExportKnowledge.disabled = false;
   }
 
@@ -499,13 +502,13 @@
       let label;
 
       if (date >= today) {
-        label = '📅 Today';
+        label = 'Today';
       } else if (date >= yesterday) {
-        label = '📅 Yesterday';
+        label = 'Yesterday';
       } else if (date >= weekAgo) {
-        label = '📅 This Week';
+        label = 'This Week';
       } else {
-        label = `📅 ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+        label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       }
 
       if (!groups[label]) groups[label] = [];
