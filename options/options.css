@@ -1,0 +1,252 @@
+/* ─── OogVault Options Page Styles ─── */
+
+:root {
+  --oog-green: #2d6a4f;
+  --oog-green-light: #40916c;
+  --oog-green-dark: #1b4332;
+  --oog-gold: #d4a843;
+  --oog-bg: #0f0f1a;
+  --oog-bg-card: #171728;
+  --oog-text: #e8e8e8;
+  --oog-text-secondary: #b0b0c4;
+  --oog-text-muted: #6e6e88;
+  --oog-border: #2a2a4a;
+  --oog-danger: #e05555;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--oog-bg);
+  color: var(--oog-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--oog-border);
+}
+
+.logo {
+  font-size: 32px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--oog-text-muted);
+  margin-bottom: 16px;
+}
+
+.section {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: var(--oog-bg-card);
+  border: 1px solid var(--oog-border);
+  border-radius: 12px;
+}
+
+/* ─── Toggle ─── */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(42, 42, 74, 0.5);
+  cursor: pointer;
+}
+
+.toggle-row:last-of-type {
+  border-bottom: none;
+}
+
+.toggle-label strong {
+  display: block;
+  font-size: 14px;
+  color: var(--oog-text);
+}
+
+.toggle-label small {
+  font-size: 12px;
+  color: var(--oog-text-muted);
+}
+
+.toggle {
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background: var(--oog-border);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle:checked {
+  background: var(--oog-green);
+}
+
+.toggle:checked::after {
+  transform: translateX(20px);
+}
+
+/* ─── Range ─── */
+
+.range-row {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+}
+
+.range-label strong {
+  display: block;
+  font-size: 14px;
+}
+
+.range-label small {
+  font-size: 12px;
+  color: var(--oog-text-muted);
+}
+
+.range-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.range-control input[type="range"] {
+  flex: 1;
+  accent-color: var(--oog-green);
+}
+
+.range-value {
+  min-width: 30px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--oog-gold);
+}
+
+/* ─── Info Rows ─── */
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px;
+}
+
+.info-row span {
+  color: var(--oog-text-secondary);
+}
+
+.info-row strong {
+  color: var(--oog-text);
+}
+
+/* ─── Buttons ─── */
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--oog-border);
+  border-radius: 8px;
+  background: var(--oog-bg);
+  color: var(--oog-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.btn:hover {
+  background: var(--oog-bg-card);
+  border-color: var(--oog-green);
+  color: var(--oog-text);
+}
+
+.btn--danger:hover {
+  border-color: var(--oog-danger);
+  color: var(--oog-danger);
+}
+
+/* ─── About ─── */
+
+.about-text {
+  font-size: 13px;
+  color: var(--oog-text-secondary);
+  line-height: 1.6;
+}
+
+.about-text a {
+  color: var(--oog-green-light);
+  text-decoration: none;
+}
+
+.about-text a:hover {
+  text-decoration: underline;
+}
+
+/* ─── Status Message ─── */
+
+.status-msg {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 24px;
+  background: var(--oog-green);
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.status-msg.visible {
+  opacity: 1;
+}
