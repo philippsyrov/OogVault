@@ -8,6 +8,7 @@
   const optAutocomplete = document.getElementById('opt-autocomplete');
   const statConversations = document.getElementById('stat-conversations');
   const statMessages = document.getElementById('stat-messages');
+  const btnExportDesktop = document.getElementById('btn-export-desktop');
   const btnExportAll = document.getElementById('btn-export-all');
   const btnClearAll = document.getElementById('btn-clear-all');
   const statusMsg = document.getElementById('status-msg');
@@ -35,6 +36,7 @@
 
   function bindEvents() {
     optAutocomplete.addEventListener('change', saveSettings);
+    btnExportDesktop.addEventListener('click', exportForDesktop);
     btnExportAll.addEventListener('click', exportAllData);
     btnClearAll.addEventListener('click', clearAllData);
   }
@@ -46,6 +48,41 @@
 
     await sendMessage({ type: 'SAVE_SETTINGS', settings });
     showStatus('Settings saved');
+  }
+
+  async function exportForDesktop() {
+    btnExportDesktop.disabled = true;
+    showStatus('Preparing export…');
+
+    const resp = await sendMessage({ type: 'GET_ALL_CONVERSATIONS' });
+    const conversations = resp?.conversations || [];
+
+    const fullConversations = [];
+    for (const conv of conversations) {
+      const convResp = await sendMessage({ type: 'GET_CONVERSATION', id: conv.id });
+      if (convResp?.conversation) {
+        const tagsResp = await sendMessage({ type: 'GET_TAGS', conversationId: conv.id });
+        fullConversations.push({
+          ...convResp.conversation,
+          tags: tagsResp?.tags || [],
+        });
+      }
+    }
+
+    const nuggetsResp = await sendMessage({ type: 'GET_ALL_NUGGETS' });
+    const nuggets = nuggetsResp?.nuggets || [];
+
+    const payload = JSON.stringify({ conversations: fullConversations, nuggets }, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `oogvault-desktop-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showStatus(`Exported ${fullConversations.length} conversations + ${nuggets.length} nuggets`);
+    btnExportDesktop.disabled = false;
   }
 
   async function exportAllData() {
