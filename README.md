@@ -36,25 +36,24 @@ Free-tier users lose conversations after limits. Pro users have thousands of cha
 
 ## 📸 Screenshots
 
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <img src="assets/screenshots/Extension%20tab.png" alt="OogVault popup — conversation list" width="100%" />
-      <br />
-      <sub><b>Your Vault</b> — all saved conversations in one place, searchable instantly</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="assets/screenshots/Extension%20suggestion%20tab.png" alt="Autocomplete suggestion while typing" width="100%" />
-      <br />
-      <sub><b>Smart Autocomplete</b> — OogVault detects you've asked this before and shows the answer as you type</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="assets/screenshots/Save%20extension%20button.png" alt="Save to OogVault button in Claude" width="100%" />
-      <br />
-      <sub><b>One-Click Save</b> — a button injected directly into Claude, ChatGPT, Gemini, and Perplexity</sub>
-    </td>
-  </tr>
-</table>
+### Your Vault
+> All saved conversations in one place, grouped by date and searchable instantly.
+
+<img src="assets/screenshots/Extension%20tab.png" alt="OogVault popup — conversation list" width="480" />
+
+---
+
+### Smart Autocomplete
+> Start typing a question you've asked before — OogVault catches it and shows the answer preview before you hit send.
+
+<img src="assets/screenshots/Extension%20suggestion%20tab.png" alt="Autocomplete suggestion while typing" width="680" />
+
+---
+
+### One-Click Save
+> A "Save to OogVault" button is injected directly into Claude, ChatGPT, Gemini, and Perplexity. No copy-pasting, no manual work.
+
+<img src="assets/screenshots/Save%20extension%20button.png" alt="Save to OogVault button in Claude" width="680" />
 
 ---
 
