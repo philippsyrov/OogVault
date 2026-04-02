@@ -1,0 +1,10 @@
+# Compiled JS output — source of truth is TypeScript in src/
+background.js linguist-generated
+lib/*.js linguist-generated
+content/autocomplete.js linguist-generated
+content/claude.js linguist-generated
+content/chatgpt.js linguist-generated
+content/gemini.js linguist-generated
+content/perplexity.js linguist-generated
+popup/popup.js linguist-generated
+options/options.js linguist-generated
