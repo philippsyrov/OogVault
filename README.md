@@ -85,7 +85,7 @@ Free-tier users lose conversations after limits. Pro users have thousands of cha
 
 > Chrome Web Store listing coming soon. Until then, install it manually — it takes 2 minutes, we promise.
 
-### For Normal Humans™ (Chrome / Brave / Edge)
+### Chrome / Brave / Edge
 
 **Step 1** — Download this repo as a ZIP
 
@@ -97,11 +97,11 @@ Free-tier users lose conversations after limits. Pro users have thousands of cha
 
 **Step 3** — Open Chrome and go to `chrome://extensions`
 
-> Just paste that in your address bar like a URL.
+> Paste that in your address bar.
 
 **Step 4** — Turn on Developer Mode
 
-> There's a toggle in the top-right corner. Flip it on. Nothing scary happens, we promise.
+> There's a toggle in the top-right corner. Flip it on.
 
 **Step 5** — Click "Load unpacked"
 
@@ -217,7 +217,7 @@ Pull requests welcome! To add support for a new AI platform:
 
 ## 📄 License
 
-MIT — do whatever you want with it, just don't pretend you built it.
+MIT — free to use, modify, and distribute.
 
 ---
 
