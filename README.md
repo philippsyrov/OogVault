@@ -183,7 +183,7 @@ OogVault/
 ## 🛠️ Tech Stack
 
 - **Manifest V3** — Chrome extension standard
-- **Vanilla JavaScript** — No frameworks, no build step, no dependencies
+- **TypeScript (strict)** — vanilla DOM, no frameworks
 - **IndexedDB** — Local persistent storage (conversations, messages, tags, nuggets)
 - **Custom CSS** — Apple Liquid Glass aesthetic with frosted glass effects
 

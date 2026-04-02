@@ -1,6 +1,9 @@
 # Internal docs
 OOGVAULT_SPEC.md
 
+# Dependencies
+node_modules/
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -1,0 +1,518 @@
+/**
+ * OogVault Search Engine
+ * Full-text search and fuzzy matching for conversations and messages.
+ */
+
+import { getAllConversations, getMessagesForConversation, getAllNuggets } from './db.js';
+
+/**
+ * Common stop words to filter out during keyword matching.
+ * These dilute match scores when included in token averaging.
+ */
+const STOP_WORDS = new Set([
+  'i', 'me', 'my', 'we', 'our', 'you', 'your', 'he', 'she', 'it', 'they',
+  'a', 'an', 'the', 'this', 'that', 'these', 'those',
+  'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being',
+  'do', 'does', 'did', 'doing', 'done',
+  'have', 'has', 'had', 'having',
+  'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 'must',
+  'to', 'of', 'in', 'on', 'at', 'by', 'for', 'with', 'from', 'into', 'about',
+  'and', 'or', 'but', 'not', 'no', 'if', 'so', 'then', 'than',
+  'what', 'how', 'when', 'where', 'which', 'who', 'why',
+  'up', 'out', 'just', 'also', 'very', 'really', 'please', 'pls',
+  'want', 'wanna', 'gonna', 'need', 'like', 'know', 'think', 'get', 'got',
+  'hey', 'hi', 'hello', 'heya', 'ok', 'okay', 'thanks', 'thank',
+  'tell', 'ask', 'help', 'make', 'let', 'give', 'show', 'use',
+  'im', 'dont', 'cant', 'wont', 'its', 'thats', 'whats', 'heres',
+  'some', 'any', 'all', 'more', 'much', 'many', 'most', 'other',
+  'here', 'there', 'now', 'well', 'too', 'still', 'already',
+  'explain', 'describe', 'compare', 'define', 'write', 'create', 'list',
+  'generate', 'summarize', 'translate', 'analyze', 'discuss', 'elaborate',
+]);
+
+/**
+ * Topic keyword map for auto-categorizing knowledge nuggets.
+ * Categories only appear in the UI once at least one nugget matches.
+ */
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  'Finance': ['stock', 'market', 'invest', 'inflation', 'economy', 'bank', 'crypto', 'trading', 'budget', 'money', 'tax', 'revenue', 'profit', 'loan', 'interest', 'dividend', 'portfolio', 'currency', 'debt', 'savings'],
+  'Tech': ['code', 'programming', 'javascript', 'python', 'api', 'database', 'server', 'frontend', 'backend', 'algorithm', 'software', 'hardware', 'computer', 'docker', 'git', 'react', 'css', 'html', 'typescript', 'deploy', 'debug'],
+  'Science': ['physics', 'chemistry', 'biology', 'atom', 'molecule', 'gravity', 'evolution', 'experiment', 'hypothesis', 'quantum', 'star', 'planet', 'energy', 'cell', 'dna', 'electron', 'photon', 'spectrum', 'cosmos', 'galaxy', 'wave', 'radiation', 'magnetic', 'electromagnetic', 'microwave', 'frequency', 'temperature', 'force', 'mass', 'velocity', 'particle', 'nucleus', 'orbit'],
+  'Math': ['equation', 'calculus', 'algebra', 'geometry', 'probability', 'statistics', 'theorem', 'formula', 'integral', 'derivative', 'matrix', 'vector', 'polynomial', 'logarithm', 'fraction'],
+  'Health': ['exercise', 'nutrition', 'diet', 'vitamin', 'workout', 'medical', 'symptom', 'disease', 'mental', 'sleep', 'wellness', 'muscle', 'cardio', 'protein', 'calories', 'therapy'],
+  'Beauty': ['skincare', 'makeup', 'cosmetic', 'hair', 'moisturizer', 'serum', 'beauty', 'glow', 'acne', 'routine', 'sunscreen', 'cleanser', 'exfoliate', 'foundation', 'lipstick'],
+  'Cooking': ['recipe', 'cook', 'bake', 'ingredient', 'meal', 'kitchen', 'flavor', 'dish', 'spice', 'sauce', 'grill', 'roast', 'seasoning', 'soup', 'pasta', 'cuisine', 'stew'],
+  'History': ['ancient', 'war', 'century', 'empire', 'civilization', 'revolution', 'medieval', 'dynasty', 'historical', 'monarch', 'colony', 'kingdom', 'treaty'],
+  'Language': ['grammar', 'vocabulary', 'translate', 'language', 'word', 'sentence', 'pronunciation', 'linguistic', 'dialect', 'fluent', 'bilingual', 'syntax'],
+  'AI': ['machine learning', 'neural', 'training', 'dataset', 'chatbot', 'llm', 'artificial intelligence', 'deep learning', 'reinforcement', 'transformer', 'embedding', 'token', 'fine-tune'],
+  'Business': ['startup', 'entrepreneur', 'marketing', 'sales', 'brand', 'customer', 'strategy', 'product', 'revenue', 'growth', 'pitch', 'investor', 'saas'],
+  'Design': ['ui', 'ux', 'typography', 'layout', 'wireframe', 'prototype', 'figma', 'color', 'icon', 'illustration', 'responsive', 'accessibility'],
+  'Music': ['chord', 'melody', 'rhythm', 'instrument', 'guitar', 'piano', 'tempo', 'scale', 'harmony', 'bass', 'lyric', 'song', 'beat'],
+  'Writing': ['essay', 'novel', 'poetry', 'fiction', 'narrative', 'plot', 'character', 'dialogue', 'editing', 'draft', 'publish', 'author', 'story'],
+};
+
+/**
+ * Classify text into a topic category based on keyword hits.
+ * Returns the category with the most keyword matches, or "General" if none.
+ */
+export function classifyTopic(text: string): string {
+  const lower = text.toLowerCase();
+  const tokens = lower.replace(/[^\w\s]/g, ' ').split(/\s+/);
+  const tokenSet = new Set(tokens);
+
+  let bestCategory = 'General';
+  let bestHits = 0;
+
+  for (const [category, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+    let hits = 0;
+    for (const kw of keywords) {
+      if (kw.includes(' ')) {
+        if (lower.includes(kw)) hits += 2;
+      } else {
+        if (tokenSet.has(kw)) hits++;
+        for (const t of tokens) {
+          if (t.length >= 5 && t !== kw && (t.includes(kw) || kw.includes(t)) && t.length >= kw.length - 2) {
+            hits += 0.5;
+            break;
+          }
+        }
+      }
+    }
+    if (hits > bestHits) {
+      bestHits = hits;
+      bestCategory = category;
+    }
+  }
+
+  return bestCategory;
+}
+
+/**
+ * Tokenize and normalize text for matching.
+ */
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
+}
+
+/**
+ * Extract meaningful keywords (filter out stop words and short tokens).
+ */
+function extractKeywords(text: string): string[] {
+  return tokenize(text).filter((t) => t.length >= 3 && !STOP_WORDS.has(t));
+}
+
+/**
+ * Calculate simple relevance score between query tokens and text tokens.
+ * Returns a 0-1 score based on token overlap.
+ */
+function relevanceScore(queryTokens: string[], textTokens: string[]): number {
+  if (queryTokens.length === 0 || textTokens.length === 0) return 0;
+
+  const textSet = new Set(textTokens);
+  let matches = 0;
+
+  for (const qt of queryTokens) {
+    for (const tt of textSet) {
+      if (tt.includes(qt) || qt.includes(tt)) {
+        matches++;
+        break;
+      }
+    }
+  }
+
+  return matches / queryTokens.length;
+}
+
+/**
+ * Simple Levenshtein distance for fuzzy matching.
+ */
+function levenshtein(a: string, b: string): number {
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return matrix[a.length][b.length];
+}
+
+/**
+ * Keyword-smart match score between two strings (0-1, higher is better).
+ * Filters out stop words so only meaningful keywords are compared.
+ * REQUIRES at least one keyword to genuinely match (exact, substring, or
+ * very close Levenshtein). Results with zero keyword overlap return 0.
+ */
+function fuzzyScore(query: string, text: string): number {
+  const q = query.toLowerCase();
+  const t = text.toLowerCase();
+
+  if (t.includes(q)) return 1.0;
+
+  const qKeywords = extractKeywords(q);
+  const tTokens = tokenize(t);
+
+  const queryTokens = qKeywords.length > 0 ? qKeywords : tokenize(q);
+  if (queryTokens.length === 0) return 0;
+
+  let totalScore = 0;
+  let strongHits = 0;
+
+  for (const qt of queryTokens) {
+    let bestMatch = 0;
+    for (const tt of tTokens) {
+      if (tt === qt) {
+        bestMatch = 1.0;
+        break;
+      }
+      if (tt.includes(qt) || qt.includes(tt)) {
+        const shorter = Math.min(qt.length, tt.length);
+        const longer = Math.max(qt.length, tt.length);
+        if (shorter >= 4 && shorter / longer >= 0.7) {
+          bestMatch = Math.max(bestMatch, 0.9);
+        }
+        continue;
+      }
+      if (qt.length >= 4 && Math.abs(qt.length - tt.length) <= 2) {
+        const maxLen = Math.max(qt.length, tt.length);
+        const dist = levenshtein(qt, tt);
+        const sim = 1 - dist / maxLen;
+        if (sim >= 0.7 && sim > bestMatch) bestMatch = sim;
+      }
+    }
+    totalScore += bestMatch;
+    if (bestMatch >= 0.8) strongHits++;
+  }
+
+  const minHitsRequired = queryTokens.length === 1 ? 1 : 2;
+  if (strongHits < minHitsRequired) return 0;
+
+  const avgScore = totalScore / queryTokens.length;
+
+  if (strongHits >= 3) {
+    return Math.max(avgScore, 0.6 + strongHits * 0.08);
+  }
+  if (strongHits >= 2) {
+    return Math.max(avgScore, 0.5 + strongHits * 0.1);
+  }
+
+  return Math.max(avgScore, 0.4);
+}
+
+/**
+ * Search conversations by keyword. Returns conversations with matching score.
+ * Uses keyword extraction to focus on meaningful terms.
+ */
+export async function searchConversations(query: string, limit: number = 20): Promise<SearchConversationResult[]> {
+  if (!query || query.trim().length === 0) return [];
+
+  const conversations = await getAllConversations();
+  const queryKeywords = extractKeywords(query);
+  const queryAllTokens = tokenize(query);
+  const queryTokens = queryKeywords.length > 0 ? queryKeywords : queryAllTokens;
+  const results: SearchConversationResult[] = [];
+
+  for (const conv of conversations) {
+    const messages = await getMessagesForConversation(conv.id);
+    let bestScore = 0;
+    let matchedContent = '';
+
+    const titleScore = fuzzyScore(query, conv.title);
+    if (titleScore > bestScore) {
+      bestScore = titleScore;
+      matchedContent = conv.title;
+    }
+
+    for (const msg of messages) {
+      const msgScore = fuzzyScore(query, msg.content);
+      if (msgScore > bestScore) {
+        bestScore = msgScore;
+        matchedContent = msg.content.substring(0, 200);
+      }
+    }
+
+    if (bestScore > 0.25) {
+      results.push({
+        ...conv,
+        messages,
+        score: bestScore,
+        matchedContent,
+      });
+    }
+  }
+
+  return results
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+/**
+ * Search for similar past questions (user messages + nuggets).
+ * Uses keyword-smart matching: extracts meaningful keywords from the query
+ * and matches them against saved content, ignoring filler/stop words.
+ */
+export async function searchSimilarQuestions(query: string, limit: number = 5): Promise<SimilarQuestionResult[]> {
+  if (!query || query.trim().length < 8) return [];
+
+  const queryKw = extractKeywords(query);
+  if (queryKw.length === 0) return [];
+
+  const conversations = await getAllConversations();
+  const results: SimilarQuestionResult[] = [];
+  const seen = new Set<string>();
+
+  for (const conv of conversations) {
+    const messages = await getMessagesForConversation(conv.id);
+    const userMessages = messages.filter((m) => m.role === 'user');
+
+    for (const msg of userMessages) {
+      const score = fuzzyScore(query, msg.content);
+
+      if (score > 0.3) {
+        const key = msg.content.substring(0, 100).toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        const msgIndex = messages.indexOf(msg);
+        const response = messages[msgIndex + 1];
+
+        results.push({
+          question: msg.content.substring(0, 200),
+          answer: response ? response.content.substring(0, 300) : null,
+          conversationId: conv.id,
+          conversationTitle: conv.title,
+          platform: conv.platform ?? '',
+          timestamp: msg.timestamp,
+          score,
+          source: 'conversation',
+        });
+      }
+    }
+  }
+
+  try {
+    const nuggets = await getAllNuggets();
+    for (const nugget of nuggets) {
+      const score = fuzzyScore(query, nugget.question);
+
+      if (score > 0.3) {
+        const key = nugget.question.substring(0, 100).toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        results.push({
+          question: nugget.question.substring(0, 200),
+          answer: nugget.answer ? nugget.answer.substring(0, 300) : null,
+          conversationId: nugget.conversation_id ?? '',
+          conversationTitle: nugget.question.substring(0, 60),
+          platform: 'nugget',
+          timestamp: nugget.created_at ?? '',
+          score,
+          source: 'nugget',
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('[OogVault] Nugget search failed:', e);
+  }
+
+  return results
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+/**
+ * Export a conversation as Markdown.
+ */
+export async function exportAsMarkdown(conversationId: string): Promise<string | null> {
+  const conversations = await getAllConversations();
+  const conv = conversations.find((c) => c.id === conversationId);
+  if (!conv) return null;
+
+  const messages = await getMessagesForConversation(conversationId);
+  const lines = [
+    `# ${conv.title}`,
+    `**Platform:** ${conv.platform} | **Date:** ${new Date(conv.created_at ?? '').toLocaleString()}`,
+    '',
+    '---',
+    '',
+  ];
+
+  for (const msg of messages) {
+    const role = msg.role === 'user' ? '**You**' : '**Assistant**';
+    lines.push(`### ${role}`);
+    lines.push('');
+    lines.push(msg.content);
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Generate a summary of a conversation for "Continue Conversation" feature.
+ */
+export async function generateConversationSummary(conversationId: string): Promise<string | null> {
+  const messages = await getMessagesForConversation(conversationId);
+  if (messages.length === 0) return null;
+
+  const userMessages = messages.filter((m) => m.role === 'user');
+
+  const topicsDiscussed = userMessages
+    .map((m) => `- ${m.content.substring(0, 100)}`)
+    .join('\n');
+
+  const lastExchange = messages.slice(-4).map((m) => {
+    const role = m.role === 'user' ? 'User' : 'Assistant';
+    return `${role}: ${m.content.substring(0, 200)}`;
+  }).join('\n\n');
+
+  return [
+    'I\'m continuing a previous conversation. Here\'s a summary:',
+    '',
+    '## Topics we discussed:',
+    topicsDiscussed,
+    '',
+    '## Last exchange:',
+    lastExchange,
+    '',
+    'Please continue from where we left off.',
+  ].join('\n');
+}
+
+/**
+ * Extract Q&A nuggets from a conversation's messages.
+ * Each user message paired with the following assistant response becomes one nugget.
+ * Returns an array of { question, answer } objects.
+ */
+export function extractNuggets(messages: VaultMessage[], platform?: string): VaultNugget[] {
+  const nuggets: VaultNugget[] = [];
+  const now = new Date().toISOString();
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (msg.role !== 'user') continue;
+
+    const question = msg.content.trim();
+    if (question.length < 10) continue;
+
+    const nextMsg = messages[i + 1];
+    if (!nextMsg || nextMsg.role !== 'assistant') continue;
+
+    const fullAnswer = nextMsg.content.trim();
+    if (fullAnswer.length < 5) continue;
+
+    nuggets.push({
+      id: crypto.randomUUID(),
+      question: question.substring(0, 300),
+      answer: fullAnswer.substring(0, 500),
+      platform: platform || '',
+      category: classifyTopic(question + ' ' + fullAnswer),
+      created_at: msg.timestamp || now,
+    });
+  }
+
+  return nuggets;
+}
+
+/**
+ * Search nuggets by query text using keyword-smart matching.
+ * Prioritizes question matches over answer matches.
+ */
+export async function searchNuggetsText(query: string, limit: number = 10): Promise<(VaultNugget & { score: number })[]> {
+  if (!query || query.trim().length === 0) return [];
+
+  const queryKw = extractKeywords(query);
+  if (queryKw.length === 0) return [];
+
+  const nuggets = await getAllNuggets();
+
+  const scored = nuggets.map((n) => {
+    const qScore = fuzzyScore(query, n.question);
+    const aScore = fuzzyScore(query, n.answer) * 0.7;
+    return { ...n, score: Math.max(qScore, aScore) };
+  });
+
+  return scored
+    .filter((n) => n.score > 0.35)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+/**
+ * Export nuggets as a structured knowledge.md file.
+ */
+export async function exportKnowledgeMarkdown(category: string | null = null, nuggetsList: VaultNugget[] | null = null): Promise<string | null> {
+  const nuggets = nuggetsList || await getAllNuggets();
+  if (nuggets.length === 0) return null;
+
+  const classified = nuggets.map((n) => ({
+    ...n,
+    category: n.category || classifyTopic(n.question + ' ' + (n.answer || '')),
+  }));
+
+  const filtered = category
+    ? classified.filter((n) => n.category === category)
+    : classified;
+
+  if (filtered.length === 0) return null;
+
+  const grouped: Record<string, typeof filtered> = {};
+  for (const n of filtered) {
+    const key = n.category || 'General';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(n);
+  }
+
+  const title = category
+    ? `# OogVault Knowledge — ${category}`
+    : '# OogVault Knowledge Base';
+
+  const lines = [
+    title,
+    '',
+    `> Auto-generated on ${new Date().toLocaleString()} · ${filtered.length} knowledge nuggets`,
+    '',
+    '---',
+    '',
+  ];
+
+  const sortedCategories = Object.keys(grouped).sort((a, b) => {
+    if (a === 'General') return 1;
+    if (b === 'General') return -1;
+    return a.localeCompare(b);
+  });
+
+  for (const cat of sortedCategories) {
+    const items = grouped[cat];
+    lines.push(`## ${cat} (${items.length})`);
+    lines.push('');
+
+    for (const nugget of items) {
+      lines.push(`### Q: ${nugget.question}`);
+      lines.push('');
+      lines.push(`**A:** ${nugget.answer}`);
+      lines.push('');
+      lines.push(`_${new Date(nugget.created_at ?? '').toLocaleDateString()} · ${nugget.platform || 'unknown'}_`);
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+    }
+  }
+
+  return lines.join('\n');
+}
