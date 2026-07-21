@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/banner.PNG" alt="OogVault — Master Oogway guards your AI conversations" width="100%" />
-</p>
-
 <h1 align="center">OogVault 🐢</h1>
 
 <p align="center">
