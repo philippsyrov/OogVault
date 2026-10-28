@@ -21,7 +21,7 @@
 **OogVault is a browser extension that saves your Claude, ChatGPT, Gemini and Perplexity conversations on your machine, makes them searchable, and suggests past answers while you type.** [OogVault Desktop](https://github.com/philippsyrov/OogVault-Desktop) is the companion app.
 
 > [!NOTE]
-> **Maintenance status:** OogVault is no longer actively maintained. The code still loads, but it hooks into the web pages of Claude, ChatGPT, Gemini and Perplexity, and those change often, so saving may break until the selectors are updated. Forks and PRs are welcome.
+> **Maintenance status:** OogVault is no longer maintained. I built it when Claude Code could only remember what was in `CLAUDE.md`. Coding agents now have proper built-in memory, so it is not needed anymore. The code still loads, but it hooks into the web pages of Claude, ChatGPT, Gemini and Perplexity, and those change often, so saving may break until the selectors are updated. Forks and PRs are welcome.
 
 <p align="center">
   <img src="assets/screenshots/Extension%20tab.png" alt="OogVault popup — conversation list" width="48%" />
