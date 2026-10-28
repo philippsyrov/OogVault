@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Status-Unmaintained-FFD400?style=for-the-badge&labelColor=0a0a08" alt="Status: Unmaintained">
   <a href="#install"><img src="https://img.shields.io/badge/Install-Load_Unpacked-FFD400?style=for-the-badge&labelColor=0a0a08" alt="Install"></a>
   <a href="#privacy"><img src="https://img.shields.io/badge/Privacy-100%25_Local-FFD400?style=for-the-badge&labelColor=0a0a08" alt="Privacy: 100% Local"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-FFD400?style=for-the-badge&labelColor=0a0a08" alt="License: MIT"></a>
@@ -17,28 +18,27 @@
   <img src="https://img.shields.io/badge/Manifest-V3-FFD400?style=for-the-badge&labelColor=0a0a08" alt="Manifest V3" />
 </p>
 
-<p align="center">
-  <em>"Yesterday is history, tomorrow's still a mystery, chats rest within the vault in secrecy."</em>
-</p>
+> [!NOTE]
+> **Maintenance status:** OogVault is no longer actively maintained. It was groundwork: the lessons went into newer work. The code still loads, but it hooks into the web pages of Claude, ChatGPT, Gemini and Perplexity, and those change often, so saving may break until the selectors are updated. Forks and PRs are welcome.
 
-**A local search engine for your AI conversations — never re-ask the same question twice.**
+**A local search engine for your AI conversations. Stop asking the same question twice.**
 
-You ask Claude how to set up Docker, then ask ChatGPT the same thing a week later. The answer you already had is buried in a thread you cannot find. Free-tier limits erase history; Pro accounts pile up thousands of chats with no cross-platform search. **OogVault** is a browser extension that saves conversations on your machine, makes them instantly searchable, and surfaces past answers while you type — before you spend another token. Pair it with **[OogVault Desktop](https://github.com/philippsyrov/OogVault-Desktop)** when you want a dedicated app alongside the extension.
+You ask Claude how to set up Docker, then ask ChatGPT the same thing a week later. The answer you already had is buried in a thread you can't find, and no chat app searches across the others. **OogVault** is a browser extension that saves conversations on your machine, makes them searchable, and surfaces past answers while you type. **[OogVault Desktop](https://github.com/philippsyrov/OogVault-Desktop)** is the companion app.
 
 <table>
-<tr><td><b>One-click save</b></td><td>Inject a “Save to OogVault” control into Claude, ChatGPT, Gemini, and Perplexity — no copy-paste.</td></tr>
+<tr><td><b>One-click save</b></td><td>Adds a “Save to OogVault” button to Claude, ChatGPT, Gemini and Perplexity.</td></tr>
 <tr><td><b>Instant search</b></td><td>Full-text keyword search across every conversation in your vault.</td></tr>
 <tr><td><b>IDE-style autocomplete</b></td><td>Start typing a question; OogVault matches past prompts and previews the answer inline.</td></tr>
 <tr><td><b>Knowledge base</b></td><td>Auto-extracted Q&amp;A nuggets grouped by topic (Finance, Science, Tech, and more).</td></tr>
 <tr><td><b>Export &amp; backup</b></td><td>Export chats or the knowledge base as Markdown, or dump everything as reimport-ready JSON.</td></tr>
-<tr><td><b>Local-only privacy</b></td><td>IndexedDB in your browser — no accounts, no telemetry, no network calls from the extension.</td></tr>
+<tr><td><b>Local-only privacy</b></td><td>IndexedDB in your browser. No accounts, no telemetry, no network calls from the extension.</td></tr>
 </table>
 
 ---
 
 ## Install
 
-> Chrome Web Store listing coming soon. Until then, load the extension manually — about two minutes.
+> There's no store listing. Load it unpacked; it takes about two minutes. The compiled JavaScript is committed, so no build step is needed.
 
 ### Chrome, Brave, or Edge
 
@@ -74,7 +74,7 @@ Select `manifest.json` inside your OogVault folder.
 
 **Step 4 — Use it**
 
-The extension loads until you quit Firefox; a permanent Firefox Add-ons listing is on the roadmap.
+The extension stays loaded until you quit Firefox.
 
 ---
 
@@ -104,14 +104,11 @@ The extension loads until you quit Firefox; a permanent Firefox Add-ons listing 
 
 ## Privacy
 
-This is non-negotiable.
-
-- **100% local** — Data lives in your browser’s IndexedDB
-- **Zero network requests** — The extension never phones home
-- **No accounts** — No sign-up, login, or tracking
-- **No analytics** — No telemetry or fingerprinting
-- **Open source** — Audit every line yourself
-- **Your data, your rules** — Export or wipe everything from Settings
+- **Local only.** Data lives in your browser’s IndexedDB.
+- **No network requests.** The extension never phones home.
+- **No accounts, no analytics.** No sign-up, tracking or telemetry.
+- **Open source.** Audit every line.
+- **Your data.** Export or wipe everything from Settings.
 
 ---
 
@@ -133,19 +130,22 @@ Open the gear icon in the popup or use **Extension options**.
 ```
 OogVault/
 ├── manifest.json              # Extension config (Manifest V3)
-├── background.js              # Service worker: message hub + DB orchestration
-├── content/
-│   ├── autocomplete.js        # IDE-style autocomplete dropdown
-│   ├── claude.js              # Claude.ai content script
-│   ├── chatgpt.js             # ChatGPT content script
-│   ├── gemini.js              # Google Gemini content script
-│   ├── perplexity.js          # Perplexity.ai content script
-│   └── inject.css             # Injected UI styles
-├── lib/
-│   ├── db.js                  # IndexedDB layer (conversations, messages, tags, nuggets)
-│   └── search.js              # Search engine, fuzzy matching, nugget extraction
-├── popup/                     # Popup UI (Conversations + Knowledge tabs)
-├── options/                   # Settings page
+├── src/                       # TypeScript source (edit here)
+│   ├── background.ts          # Service worker: message hub + DB orchestration
+│   ├── content/
+│   │   ├── autocomplete.ts    # IDE-style autocomplete dropdown
+│   │   ├── claude.ts          # Claude.ai content script
+│   │   ├── chatgpt.ts         # ChatGPT content script
+│   │   ├── gemini.ts          # Google Gemini content script
+│   │   └── perplexity.ts      # Perplexity.ai content script
+│   ├── lib/
+│   │   ├── db.ts              # IndexedDB layer (conversations, messages, tags, nuggets)
+│   │   └── search.ts          # Search engine, fuzzy matching, nugget extraction
+│   ├── popup/popup.ts         # Popup logic
+│   ├── options/options.ts     # Settings logic
+│   └── types/                 # Shared type declarations
+├── background.js, content/, lib/, popup/, options/
+│                              # Compiled JS (npm run build) plus HTML/CSS; what the browser loads
 └── assets/                    # Icons and README artwork
 ```
 
@@ -167,16 +167,18 @@ OogVault/
 
 Pull requests welcome. To add another AI platform:
 
-1. Add `content/your-platform.js` following `content/claude.js`
-2. Register the URL match in `manifest.json`
-3. Implement `extractMessages()` with platform-specific selectors
-4. Saving, search, autocomplete, and nuggets work automatically
+1. Add `src/content/your-platform.ts`, following `src/content/claude.ts`
+2. Implement `extractMessages()` with platform-specific selectors
+3. Register the URL match in `manifest.json`
+4. `npm install && npm run build`, then reload the extension
+
+Saving, search, autocomplete and nuggets work automatically.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Free to use, modify, and distribute.
+MIT, see [LICENSE](LICENSE).
 
 ---
 
@@ -185,9 +187,5 @@ MIT — see [LICENSE](LICENSE). Free to use, modify, and distribute.
 Built by **[Philipp Syrov](https://github.com/philippsyrov)**. Companion desktop app: **[OogVault Desktop](https://github.com/philippsyrov/OogVault-Desktop)**.
 
 <p align="center">
-  <em>"There are no accidents."</em> — Master Oogway <em>(probably)</em>
-</p>
-
-<p align="center">
-  <strong>Search your vault first. Save the tokens.</strong>
+  <em>"There are no accidents."</em> — Master Oogway
 </p>
