@@ -23,23 +23,31 @@
 > [!NOTE]
 > **Maintenance status:** OogVault is no longer maintained. I built it when Claude Code could only remember what was in `CLAUDE.md`. Coding agents now have proper built-in memory, so it is not needed anymore. The code still loads, but it hooks into the web pages of Claude, ChatGPT, Gemini and Perplexity, and those change often, so saving may break until the selectors are updated. Forks and PRs are welcome.
 
-<p align="center">
-  <img src="assets/screenshots/Extension%20tab.png" alt="OogVault popup — conversation list" width="48%" />
-  <img src="assets/screenshots/Extension%20suggestion%20tab.png" alt="Autocomplete while typing" width="48%" />
-</p>
+## Features
 
-<p align="center">
-  <img src="assets/screenshots/Save%20extension%20button.png" alt="Save to OogVault button in Claude" width="72%" />
-</p>
+### One-click save
 
-| Feature | What it does |
-| --- | --- |
-| **One-click save** | Adds a "Save to OogVault" button to `claude.ai`, `chatgpt.com` / `chat.openai.com`, `gemini.google.com` and `perplexity.ai`. |
-| **Search** | Full-text keyword search across every conversation in your vault. |
-| **Autocomplete** | As you type a question, matches past prompts and previews the earlier answer inline; can be turned off in Settings. |
-| **Knowledge base** | Extracts Q&A nuggets from saved chats and groups them by keyword-matched topic (Finance, Science, Tech and others). |
-| **Export and backup** | Exports a chat or the knowledge base as Markdown, or the whole vault as JSON that OogVault Desktop can import. |
-| **Local only** | Stores everything in the browser's IndexedDB; no accounts, no telemetry, no network calls from the extension. See [docs/PRIVACY.md](docs/PRIVACY.md). |
+Adds a "Save to OogVault" button to `claude.ai`, `chatgpt.com` / `chat.openai.com`, `gemini.google.com` and `perplexity.ai`.
+
+<p align="center"><img src="assets/screenshots/Save%20extension%20button.png" alt="Save to OogVault button in Claude" width="720"></p>
+
+### Search
+
+Full-text keyword search across every conversation in your vault.
+
+<p align="center"><img src="assets/screenshots/Extension%20tab.png" alt="OogVault popup with the conversation list and search box" width="400"></p>
+
+### Autocomplete
+
+As you type a question, OogVault matches past prompts and previews the earlier answer inline. You can turn it off in Settings.
+
+<p align="center"><img src="assets/screenshots/Extension%20suggestion%20tab.png" alt="Autocomplete suggesting a past answer while typing" width="640"></p>
+
+### Also
+
+- **Knowledge base** - Extracts Q&A nuggets from saved chats and groups them by keyword-matched topic (Finance, Science, Tech and others).
+- **Export and backup** - Exports a chat or the knowledge base as Markdown, or the whole vault as JSON that OogVault Desktop can import.
+- **Local only** - Stores everything in the browser's IndexedDB; no accounts, no telemetry, no network calls from the extension. See [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Install
 
